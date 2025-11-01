@@ -1,19 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllPlots } from '../db/database';
-import type { VegetationPlot } from '../db/database';
+import { getAllPlots, getAllProjects, createProject, updateProject } from '../db/database';
+import type { VegetationPlot, Project } from '../db/database';
 import { calculateAllIndices } from '../utils/biodiversity';
 import type { BiodiversityIndices } from '../utils/biodiversity';
 
-// Define a project with associated plots
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  plotIds: number[];
-  createdDate: Date;
-  updatedDate: Date;
-}
+
 
 interface PlotWithBiodiversity extends Omit<VegetationPlot, 'biodiversity'> {
   biodiversity?: BiodiversityIndices;
@@ -40,7 +32,11 @@ export default function Projects() {
       try {
         setIsLoading(true);
         
-        const allPlots = await getAllPlots();
+        // Load both plots and projects from the database
+        const [allPlots, allProjects] = await Promise.all([
+          getAllPlots(),
+          getAllProjects()
+        ]);
         
         // Calculate biodiversity for each plot
         const plotsWithBiodiversity = allPlots.map(plot => ({
@@ -49,31 +45,7 @@ export default function Projects() {
         }));
         
         setPlots(plotsWithBiodiversity);
-        
-        // For now, create a default project from existing plots
-        // In a real app, you'd have a separate projects store
-        if (allPlots.length > 0) {
-          const mockProject: Project = {
-            id: 1,
-            name: 'Default Project',
-            description: 'All plots in the system',
-            plotIds: allPlots.map(plot => plot.id!).filter(id => id !== undefined) as number[],
-            createdDate: new Date(Math.min(...allPlots.map(p => p.createdAt.getTime()))),
-            updatedDate: new Date(Math.max(...allPlots.map(p => p.updatedAt.getTime()))),
-          };
-          setProjects([mockProject]);
-        } else {
-          // Create an empty project if no plots exist yet
-          const emptyProject: Project = {
-            id: 1,
-            name: 'My First Project',
-            description: 'A new research project',
-            plotIds: [],
-            createdDate: new Date(),
-            updatedDate: new Date(),
-          };
-          setProjects([emptyProject]);
-        }
+        setProjects(allProjects);
       } catch (err) {
         console.error("Failed to load projects and plots:", err);
         if (err instanceof Error) {
@@ -89,25 +61,34 @@ export default function Projects() {
     loadProjectsAndPlots();
   }, []);
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!newProject.name.trim()) {
       alert('Please enter a project name');
       return;
     }
 
-    // Create a new project
-    const newProjectObj: Project = {
-      id: Date.now(), // In a real app, this would come from the database
-      name: newProject.name,
-      description: newProject.description,
-      plotIds: newProject.plotIds,
-      createdDate: new Date(),
-      updatedDate: new Date(),
-    };
+    try {
+      // Create a new project in the database
+      await createProject({
+        name: newProject.name,
+        description: newProject.description,
+        plotIds: newProject.plotIds,
+      });
 
-    setProjects([...projects, newProjectObj]);
-    setNewProject({ name: '', description: '', plotIds: [] });
-    setShowCreateForm(false);
+      // Fetch all projects again to update the list
+      const allProjects = await getAllProjects();
+      setProjects(allProjects);
+      
+      setNewProject({ name: '', description: '', plotIds: [] });
+      setShowCreateForm(false);
+    } catch (err) {
+      console.error("Failed to create project:", err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to create project");
+      }
+    }
   };
 
   const handleAddPlotToProject = async () => {
@@ -123,36 +104,68 @@ export default function Projects() {
       setAddPlotMode(null);
       setSelectedExistingPlotIds([]);
     } else if (addPlotMode === 'existing' && selectedExistingPlotIds.length > 0) {
-      // Add existing plots to the project
-      setProjects(prevProjects => 
-        prevProjects.map(project => 
-          project.id === selectedProjectId
-            ? { 
-                ...project, 
-                plotIds: [...new Set([...project.plotIds, ...selectedExistingPlotIds])], // Avoid duplicates
-                updatedDate: new Date()
-              }
-            : project
-        )
-      );
-      setShowAddPlotForm(false);
-      setAddPlotMode(null);
-      setSelectedExistingPlotIds([]);
+      try {
+        // Get the project to update
+        const projectToUpdate = projects.find(p => p.id === selectedProjectId);
+        if (!projectToUpdate) return;
+        
+        // Update the project with new plot IDs
+        const updatedProject = {
+          ...projectToUpdate,
+          plotIds: [...new Set([...projectToUpdate.plotIds, ...selectedExistingPlotIds])], // Avoid duplicates
+          updatedDate: new Date()
+        };
+        
+        // Update in database
+        await updateProject(updatedProject);
+        
+        // Refresh projects list
+        const allProjects = await getAllProjects();
+        setProjects(allProjects);
+        
+        setShowAddPlotForm(false);
+        setAddPlotMode(null);
+        setSelectedExistingPlotIds([]);
+      } catch (err) {
+        console.error("Failed to add plot to project:", err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Failed to add plot to project");
+        }
+      }
     }
   };
 
-  const removePlotFromProject = (projectId: number, plotId: number) => {
-    setProjects(prevProjects => 
-      prevProjects.map(project => 
-        project.id === projectId
-          ? { 
-              ...project, 
-              plotIds: project.plotIds.filter(id => id !== plotId),
-              updatedDate: new Date()
-            }
-          : project
-      )
-    );
+  const removePlotFromProject = async (projectId: number | undefined, plotId: number) => {
+    if (projectId === undefined) return;
+    
+    try {
+      // Get the project to update
+      const projectToUpdate = projects.find(p => p.id === projectId);
+      if (!projectToUpdate) return;
+      
+      // Update the project with filtered plot IDs
+      const updatedProject = {
+        ...projectToUpdate,
+        plotIds: projectToUpdate.plotIds.filter(id => id !== plotId),
+        updatedDate: new Date()
+      };
+      
+      // Update in database
+      await updateProject(updatedProject);
+      
+      // Refresh projects list
+      const allProjects = await getAllProjects();
+      setProjects(allProjects);
+    } catch (err) {
+      console.error("Failed to remove plot from project:", err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to remove plot from project");
+      }
+    }
   };
 
   const getProjectStats = (projectId: number) => {
@@ -481,6 +494,7 @@ export default function Projects() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map(project => {
+            if (project.id === undefined) return null; // Skip projects without an ID
             const stats = getProjectStats(project.id);
             return (
               <div key={project.id} className="card flex flex-col h-full">
@@ -534,7 +548,9 @@ export default function Projects() {
                                   className="text-red-500 hover:text-red-700 text-xs"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    removePlotFromProject(project.id, plot.id!);
+                                    if (project.id !== undefined) {
+                                      removePlotFromProject(project.id, plot.id!);
+                                    }
                                   }}
                                   title="Remove from project"
                                 >
@@ -585,9 +601,11 @@ export default function Projects() {
                     <button 
                       className="btn-primary w-full text-xs py-2"
                       onClick={() => {
-                        setSelectedProjectId(project.id);
-                        setShowAddPlotForm(true);
-                        setAddPlotMode(null);
+                        if (project.id !== undefined) {
+                          setSelectedProjectId(project.id);
+                          setShowAddPlotForm(true);
+                          setAddPlotMode(null);
+                        }
                       }}
                     >
                       Add Plot to Project

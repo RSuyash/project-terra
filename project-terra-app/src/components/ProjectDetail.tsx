@@ -1,18 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getAllPlots } from '../db/database';
-import type { VegetationPlot } from '../db/database';
+import { getAllPlots, getProjectById, updateProject } from '../db/database';
+import type { VegetationPlot, Project } from '../db/database';
 import { calculateAllIndices } from '../utils/biodiversity';
 import type { BiodiversityIndices } from '../utils/biodiversity';
 
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  plotIds: number[];
-  createdDate: Date;
-  updatedDate: Date;
-}
+
 
 interface PlotWithBiodiversity extends Omit<VegetationPlot, 'biodiversity'> {
   biodiversity?: BiodiversityIndices;
@@ -20,7 +13,6 @@ interface PlotWithBiodiversity extends Omit<VegetationPlot, 'biodiversity'> {
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [projects, setProjects] = useState<Project[]>([]);
   const [plots, setPlots] = useState<PlotWithBiodiversity[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [showAddPlotForm, setShowAddPlotForm] = useState(false);
@@ -29,13 +21,17 @@ const ProjectDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load projects and plots
+  // Load plots and current project
   useEffect(() => {
-    async function loadProjectsAndPlots() {
+    async function loadProjectAndPlots() {
       try {
         setIsLoading(true);
         
-        const allPlots = await getAllPlots();
+        // Load plots and the specific project
+        const [allPlots, projectData] = await Promise.all([
+          getAllPlots(),
+          getProjectById(Number(id))
+        ]);
         
         // Calculate biodiversity for each plot
         const plotsWithBiodiversity = allPlots.map(plot => ({
@@ -44,41 +40,9 @@ const ProjectDetail = () => {
         }));
         
         setPlots(plotsWithBiodiversity);
-        
-        // For now, create a default project from existing plots
-        // In a real app, you'd have a separate projects store
-        if (allPlots.length > 0) {
-          const mockProject: Project = {
-            id: 1,
-            name: 'Default Project',
-            description: 'All plots in the system',
-            plotIds: allPlots.map(plot => plot.id!).filter(id => id !== undefined) as number[],
-            createdDate: new Date(Math.min(...allPlots.map(p => p.createdAt.getTime()))),
-            updatedDate: new Date(Math.max(...allPlots.map(p => p.updatedAt.getTime()))),
-          };
-          setProjects([mockProject]);
-          
-          // Set current project based on URL param
-          const project = mockProject.id === Number(id) ? mockProject : null;
-          setCurrentProject(project);
-        } else {
-          // Create an empty project if no plots exist yet
-          const emptyProject: Project = {
-            id: 1,
-            name: 'My First Project',
-            description: 'A new research project',
-            plotIds: [],
-            createdDate: new Date(),
-            updatedDate: new Date(),
-          };
-          setProjects([emptyProject]);
-          
-          // Set current project based on URL param
-          const project = emptyProject.id === Number(id) ? emptyProject : null;
-          setCurrentProject(project);
-        }
+        setCurrentProject(projectData || null);
       } catch (err) {
-        console.error("Failed to load projects and plots:", err);
+        console.error("Failed to load project and plots:", err);
         if (err instanceof Error) {
           setError(err.message);
         } else {
@@ -90,17 +54,9 @@ const ProjectDetail = () => {
     }
 
     if (id) {
-      loadProjectsAndPlots();
+      loadProjectAndPlots();
     }
   }, [id]);
-
-  // Update current project when projects change
-  useEffect(() => {
-    if (projects.length > 0 && id) {
-      const project = projects.find(p => p.id === Number(id)) || null;
-      setCurrentProject(project);
-    }
-  }, [projects, id]);
 
   const handleAddPlotToProject = async () => {
     if (!currentProject) return;
@@ -114,58 +70,58 @@ const ProjectDetail = () => {
       setAddPlotMode(null);
       setSelectedExistingPlotIds([]);
     } else if (addPlotMode === 'existing' && selectedExistingPlotIds.length > 0) {
-      // In a real app, you would update the projects in the database
-      // For now, let's update the local state
-      setProjects(prevProjects => 
-        prevProjects.map(project => 
-          project.id === currentProject.id
-            ? { 
-                ...project, 
-                plotIds: [...new Set([...project.plotIds, ...selectedExistingPlotIds])], // Avoid duplicates
-                updatedDate: new Date()
-              }
-            : project
-        )
-      );
-      
-      // Update current project state
-      setCurrentProject(prev => 
-        prev ? {
-          ...prev, 
-          plotIds: [...new Set([...prev.plotIds, ...selectedExistingPlotIds])],
+      try {
+        // Update the project with new plot IDs
+        const updatedProject = {
+          ...currentProject,
+          plotIds: [...new Set([...currentProject.plotIds, ...selectedExistingPlotIds])], // Avoid duplicates
           updatedDate: new Date()
-        } : null
-      );
-      
-      setShowAddPlotForm(false);
-      setAddPlotMode(null);
-      setSelectedExistingPlotIds([]);
+        };
+        
+        // Update in database
+        await updateProject(updatedProject);
+        
+        // Update local state
+        setCurrentProject(updatedProject);
+        
+        setShowAddPlotForm(false);
+        setAddPlotMode(null);
+        setSelectedExistingPlotIds([]);
+      } catch (err) {
+        console.error("Failed to add plot to project:", err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Failed to add plot to project");
+        }
+      }
     }
   };
 
-  const removePlotFromProject = (plotId: number) => {
+  const removePlotFromProject = async (plotId: number) => {
     if (!currentProject) return;
     
-    setProjects(prevProjects => 
-      prevProjects.map(project => 
-        project.id === currentProject.id
-          ? { 
-              ...project, 
-              plotIds: project.plotIds.filter(id => id !== plotId),
-              updatedDate: new Date()
-            }
-          : project
-      )
-    );
-    
-    // Update current project state
-    setCurrentProject(prev => 
-      prev ? {
-        ...prev, 
-        plotIds: prev.plotIds.filter(id => id !== plotId),
+    try {
+      // Update the project with filtered plot IDs
+      const updatedProject = {
+        ...currentProject,
+        plotIds: currentProject.plotIds.filter(id => id !== plotId),
         updatedDate: new Date()
-      } : null
-    );
+      };
+      
+      // Update in database
+      await updateProject(updatedProject);
+      
+      // Update local state
+      setCurrentProject(updatedProject);
+    } catch (err) {
+      console.error("Failed to remove plot from project:", err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to remove plot from project");
+      }
+    }
   };
 
   const getProjectStats = () => {

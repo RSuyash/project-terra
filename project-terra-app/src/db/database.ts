@@ -21,6 +21,15 @@ export interface CanopyPhoto {
   timestamp: Date;
 }
 
+export interface Project {
+  id?: number;
+  name: string;
+  description?: string;
+  plotIds: number[];
+  createdDate: Date;
+  updatedDate: Date;
+}
+
 export interface GroundCover {
   shrub: number;
   herb: number;
@@ -97,6 +106,7 @@ export class EcoFieldDatabase extends Dexie {
   canopyPhotos!: Table<CanopyPhoto>;
   speciesAreaPlots!: Table<SpeciesAreaPlot>;
   biodiversityAnalysis!: Table<BiodiversityAnalysis>;
+  projects!: Table<Project>;
 
   constructor() {
     super('EcoFieldDatabase');
@@ -107,6 +117,7 @@ export class EcoFieldDatabase extends Dexie {
       canopyPhotos: '++id, plotId, angle, timestamp',
       speciesAreaPlots: '++id, plotId, plotSize',
       biodiversityAnalysis: '++id, plotId, calculatedAt',
+      projects: '++id, name, createdDate'
     });
   }
 }
@@ -195,6 +206,36 @@ export async function populate() {
       { name: 'Sandalwood', scientificName: 'Santalum album', createdAt: new Date(), updatedAt: new Date() },
     ]);
   }
+}
+
+// Project helper functions
+export async function getAllProjects(): Promise<Project[]> {
+  return await db.projects.toArray();
+}
+
+export async function getProjectById(id: number): Promise<Project | undefined> {
+  return await db.projects.get(id);
+}
+
+export async function createProject(project: Omit<Project, 'id' | 'createdDate' | 'updatedDate'>): Promise<number> {
+  const now = new Date();
+  return await db.projects.add({
+    ...project,
+    createdDate: now,
+    updatedDate: now,
+  });
+}
+
+export async function updateProject(project: Project): Promise<void> {
+  const now = new Date();
+  await db.projects.put({
+    ...project,
+    updatedDate: now,
+  });
+}
+
+export async function deleteProject(id: number): Promise<void> {
+  await db.projects.delete(id);
 }
 
 populate().catch(err => {
