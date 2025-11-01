@@ -4,6 +4,7 @@ import { getAllSpecies, getPlotById, saveVegetationPlot, updateVegetationPlot } 
 import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant, Subplot, SubplotShape, VegetationPlot } from '../db/database';
 import { GPSLocation } from './GPSLocation';
 import VisualPlotLayout from './VisualPlotLayout';
+import { subplotPresets, applySubplotPreset } from '../utils/subplotPresets';
 
 // Icons for buttons
 const SaveIcon = () => (
@@ -767,6 +768,109 @@ export default function VegetationPlotForm() {
       {/* Subplot Management */}
       <div className="card">
         <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Subplot Management</h3>
+        
+        {/* Subplot Presets */}
+        <div className="mb-6">
+          <h4 className="font-bold mb-3">Standard Presets</h4>
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+            <div className="flex">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <div className="text-sm text-blue-700 dark:text-blue-300">
+                <p className="font-medium">How to use presets:</p>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li>Click any preset to <span className="font-semibold">add</span> those subplots to your existing ones</li>
+                  <li><span className="font-semibold">Hold Shift</span> while clicking to <span className="font-semibold">replace all</span> existing subplots</li>
+                  <li>Use the "Clear All Subplots" button to remove all subplots and start fresh</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {subplotPresets.map((preset) => (
+              <button
+                key={preset.id}
+                className="btn-secondary p-3 text-center flex flex-col items-center justify-center h-full hover:bg-primary-100 dark:hover:bg-primary-900/30"
+                onClick={(e) => {
+                  // Check if Shift key is pressed for replace mode
+                  const replaceMode = e.shiftKey;
+                  
+                  // Warn if there are existing subplots
+                  if (subplots.length > 0) {
+                    const action = replaceMode ? 'replace all' : 'add';
+                    const message = replaceMode
+                      ? `You already have ${subplots.length} subplot(s) defined. ` +
+                        `Shift+Click will REPLACE ALL existing subplots with ${preset.name} subplots.\n\n` +
+                        `Click OK to REPLACE all subplots, or Cancel to keep your existing subplots.`
+                      : `You already have ${subplots.length} subplot(s) defined. ` +
+                        `Applying this preset will ADD ${preset.name} subplots to your existing ones.\n\n` +
+                        `Click OK to add these subplots, or Cancel to keep your existing subplots.\n\n` +
+                        `Tip: Hold Shift while clicking to replace all existing subplots.`;
+                    
+                    const confirmReplace = window.confirm(message);
+                    
+                    if (!confirmReplace) return;
+                  }
+                  
+                  // Generate subplots using the preset
+                  const presetSubplots = applySubplotPreset(preset.id, dimensions.width, dimensions.height);
+                  
+                  // Convert to Subplot format
+                  const newSubplots = presetSubplots.map((config, index) => ({
+                    id: `preset-${preset.id}-${Date.now()}-${index}`,
+                    name: config.name,
+                    shape: config.shape,
+                    ...(config.shape === 'rectangular' 
+                      ? { width: config.width, height: config.height } 
+                      : { radius: config.radius }),
+                    positionX: config.positionX,
+                    positionY: config.positionY,
+                    measurements: [],
+                    groundCover: { shrub: 0, herb: 0, grass: 0, bare: 0, rock: 0, litter: 0 },
+                    disturbance: { grazing: false, poaching: false, lopping: false, invasives: false, fire: false }
+                  }));
+                  
+                  // Either replace or add subplots based on mode
+                  if (replaceMode && subplots.length > 0) {
+                    setSubplots(newSubplots);
+                  } else {
+                    setSubplots([...subplots, ...newSubplots]);
+                  }
+                }}
+              >
+                <span className="text-2xl mb-1">{preset.icon}</span>
+                <span className="font-semibold text-sm">{preset.name}</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400 mt-1">{preset.description}</span>
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-between items-center mt-3">
+            <button
+              className="btn-secondary text-sm"
+              onClick={() => {
+                if (subplots.length > 0) {
+                  const confirmClear = window.confirm(
+                    `Are you sure you want to remove all ${subplots.length} existing subplot(s)? ` +
+                    `This action cannot be undone.`
+                  );
+                  
+                  if (confirmClear) {
+                    setSubplots([]);
+                  }
+                }
+              }}
+            >
+              Clear All Subplots
+            </button>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {subplots.length} subplot(s) defined
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Click a preset to automatically add standard subplot configurations to your plot
+          </p>
+        </div>
         
         {/* Add Subplot Form */}
         <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg mb-6 space-y-4">

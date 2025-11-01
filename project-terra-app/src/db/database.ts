@@ -166,6 +166,34 @@ export class EcoFieldDatabase extends Dexie {
       biodiversityAnalysis: '++id, plotId, calculatedAt',
       projects: '++id, name, createdDate'
     });
+
+    // Add subplots support in version 2
+    this.version(2).stores({
+      species: '++id, name, scientificName, createdAt',
+      vegetationPlots: '++id, plotNumber, date, createdAt',
+      canopyPhotos: '++id, plotId, angle, timestamp',
+      speciesAreaPlots: '++id, plotId, plotSize',
+      biodiversityAnalysis: '++id, plotId, calculatedAt',
+      projects: '++id, name, createdDate'
+    }).upgrade(trans => {
+      // Migrate existing plots to include subplots if not present
+      return trans.table('vegetationPlots').toCollection().modify(plot => {
+        if (!plot.subplots) {
+          plot.subplots = [];
+        }
+        if (!plot.quadrants) {
+          plot.quadrants = [];
+        }
+        if (!plot.dimensions) {
+          plot.dimensions = {
+            width: 10,  // Default to 10x10m if not specified
+            height: 10,
+            area: 100,
+            unit: 'm'
+          };
+        }
+      });
+    });
   }
 }
 
