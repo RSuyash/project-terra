@@ -5,13 +5,18 @@ import ProjectList from './ProjectDashboard/ProjectList';
 import ProjectForm from './ProjectDashboard/ProjectForm';
 import ProjectDetail from './ProjectDashboard/ProjectDetail';
 import PlotListInProject from './ProjectDashboard/PlotListInProject';
-import type { Project } from '../db/database';
+import PlotList from './PlotDashboard/PlotManagement/PlotList';
+import PlotForm from './PlotDashboard/PlotForm/PlotForm';
+import PlotVisualization from './PlotDashboard/PlotVisualization/PlotVisualization';
+import type { Project, VegetationPlot } from '../db/database';
 
 const ProjectDashboard = () => {
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
-  const [view, setView] = useState<'list' | 'form' | 'detail'>('list');
+  const [view, setView] = useState<'list' | 'form' | 'detail' | 'plot-list' | 'plot-form' | 'plot-visualization'>('list');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [selectedPlot, setSelectedPlot] = useState<VegetationPlot | null>(null);
+  const [editingPlot, setEditingPlot] = useState<VegetationPlot | null>(null);
 
   const toggleSidePanel = () => {
     setIsSidePanelOpen(!isSidePanelOpen);
@@ -52,6 +57,36 @@ const ProjectDashboard = () => {
     setEditingProject(null);
   };
 
+  const handleCreatePlot = () => {
+    setEditingPlot(null);
+    setView('plot-form');
+  };
+
+  const handleEditPlot = (plot: VegetationPlot) => {
+    setEditingPlot(plot);
+    setView('plot-form');
+  };
+
+  const handleViewPlot = (plot: VegetationPlot) => {
+    setSelectedPlot(plot);
+    setView('plot-visualization');
+  };
+
+  const handlePlotSave = () => {
+    setView('plot-list');
+    setEditingPlot(null);
+  };
+
+  const handlePlotVisualizationBack = () => {
+    setView('plot-list');
+    setSelectedPlot(null);
+  };
+
+  const handleCancelPlotForm = () => {
+    setView('plot-list');
+    setEditingPlot(null);
+  };
+
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <SidePanel isOpen={isSidePanelOpen} togglePanel={toggleSidePanel}>
@@ -78,9 +113,14 @@ const ProjectDashboard = () => {
               </button>
             </li>
             <li>
-              <a href="#" className="block py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white">
+              <button 
+                className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
+                  view === 'plot-list' ? 'bg-blue-100 dark:bg-blue-900/50 font-medium' : ''
+                }`}
+                onClick={() => setView('plot-list')}
+              >
                 Plot Management
-              </a>
+              </button>
             </li>
             <li>
               <a href="#" className="block py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white">
@@ -105,12 +145,53 @@ const ProjectDashboard = () => {
         {/* Main content area with ribbon */}
         <main className="flex-1 overflow-auto p-6">
           <Ribbon title="Project Tools">
-            <button 
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              onClick={handleCreateProject}
-            >
-              New Project
-            </button>
+            {view === 'list' || view === 'detail' ? (
+              <>
+                <button 
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  onClick={handleCreateProject}
+                >
+                  New Project
+                </button>
+                <button 
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                  onClick={() => setView('plot-list')}
+                >
+                  View Plots
+                </button>
+              </>
+            ) : view === 'plot-list' || view === 'plot-visualization' ? (
+              <>
+                <button 
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  onClick={handleCreatePlot}
+                >
+                  New Plot
+                </button>
+                <button 
+                  className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                  onClick={() => setView('list')}
+                >
+                  Back to Projects
+                </button>
+              </>
+            ) : view === 'plot-form' ? (
+              <>
+                <button 
+                  className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                  onClick={() => setView('plot-list')}
+                >
+                  Back to Plots
+                </button>
+              </>
+            ) : (
+              <button 
+                className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                onClick={() => setView('list')}
+              >
+                Back to Projects
+              </button>
+            )}
             <button className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
               Import Data
             </button>
@@ -119,9 +200,6 @@ const ProjectDashboard = () => {
             </button>
             <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors">
               Analysis
-            </button>
-            <button className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
-              Settings
             </button>
           </Ribbon>
 
@@ -168,6 +246,44 @@ const ProjectDashboard = () => {
                 <div className="mt-6">
                   <PlotListInProject project={selectedProject} />
                 </div>
+              </div>
+            )}
+
+            {view === 'plot-list' && (
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Plot Management</h1>
+                <PlotList 
+                  onPlotSelect={handleViewPlot} 
+                  onPlotEdit={handleEditPlot}
+                  selectedPlotId={selectedPlot?.id} 
+                />
+              </div>
+            )}
+
+            {view === 'plot-form' && (
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+                  {editingPlot ? 'Edit Plot' : 'Create New Plot'}
+                </h1>
+                <PlotForm 
+                  plot={editingPlot} 
+                  onSave={handlePlotSave} 
+                  onCancel={handleCancelPlotForm} 
+                />
+              </div>
+            )}
+
+            {view === 'plot-visualization' && selectedPlot && (
+              <div>
+                <div className="mb-4">
+                  <button
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                    onClick={handlePlotVisualizationBack}
+                  >
+                    &larr; Back to Plots
+                  </button>
+                </div>
+                <PlotVisualization plot={selectedPlot} />
               </div>
             )}
           </div>
