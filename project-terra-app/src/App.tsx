@@ -8,6 +8,7 @@ import CanopyAnalysis from './components/CanopyAnalysis';
 import Projects from './components/Projects';
 import ProjectDetail from './components/ProjectDetail';
 import Dashboard from './components/Dashboard';
+import ProjectDashboard from './components/ProjectDashboard';
 
 interface CardProps {
   title: string;
@@ -84,6 +85,7 @@ function App() {
                   </>
                 } />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/project-dashboard" element={<ProjectDashboard />} />
                 <Route path="/vegetation-plot" element={<VegetationPlotForm />} />
                 <Route path="/plots" element={<PlotList />} />
                 <Route path="/plot/:id/edit" element={<VegetationPlotForm />} />
