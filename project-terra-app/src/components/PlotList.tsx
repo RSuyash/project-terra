@@ -100,6 +100,17 @@ export function PlotList() {
                     ))}
                   </div>
                 )}
+                {plot.subplots && plot.subplots.length > 0 && (
+                  <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span className="font-medium">Subplots: </span>
+                    {plot.subplots.length} with data
+                    {plot.subplots.map(subplot => (
+                      <span key={subplot.id} className="ml-2 px-1.5 py-0.5 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded text-xs">
+                        {subplot.name || subplot.id.split('-')[1]}: {subplot.measurements.length}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="mt-6 flex justify-between items-center">
                 <span className="text-xs text-gray-400 dark:text-gray-500">

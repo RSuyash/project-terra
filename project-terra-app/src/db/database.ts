@@ -81,6 +81,25 @@ export interface QuadrantData {
   canopyCover?: number; // Canopy cover percentage for this quadrant
 }
 
+export type SubplotShape = 'rectangular' | 'circular';
+
+export interface Subplot {
+  id: string; // Unique identifier for the subplot
+  name?: string; // Optional name for the subplot
+  shape: SubplotShape;
+  // For rectangular subplots
+  width?: number; // in meters
+  height?: number; // in meters
+  // For circular subplots
+  radius?: number; // in meters
+  // Position within the main plot (in meters from NW corner)
+  positionX: number; // Distance from left edge of main plot
+  positionY: number; // Distance from top edge of main plot
+  measurements: PlotMeasurement[]; // Subplot-specific measurements
+  groundCover: GroundCover; // Subplot-specific ground cover (required)
+  disturbance: Disturbance; // Subplot-specific disturbance (required)
+}
+
 export interface PlotDimensions {
   width: number; // in meters
   height: number; // in meters
@@ -103,6 +122,7 @@ export interface VegetationPlot {
   disturbance: Disturbance; // Overall plot disturbance
   measurements: PlotMeasurement[]; // Overall plot measurements
   quadrants?: QuadrantData[]; // Quadrant-specific data
+  subplots?: Subplot[]; // Subplot-specific data
   canopyPhotos?: number[]; // References to CanopyPhoto IDs
   createdAt: Date;
   updatedAt: Date;
@@ -212,6 +232,22 @@ export async function getAllPlots(): Promise<VegetationPlot[]> {
     if (!plot.quadrants) {
       plot.quadrants = [];
     }
+    
+    // Ensure subplots array exists for backward compatibility
+    if (!plot.subplots) {
+      plot.subplots = [];
+    } else {
+      // Ensure all subplots have required groundCover and disturbance fields
+      plot.subplots = plot.subplots.map(subplot => ({
+        ...subplot,
+        groundCover: subplot.groundCover || { 
+          shrub: 0, herb: 0, grass: 0, bare: 0, rock: 0, litter: 0 
+        },
+        disturbance: subplot.disturbance || { 
+          grazing: false, poaching: false, lopping: false, invasives: false, fire: false 
+        }
+      }));
+    }
     return plot;
   });
 }
@@ -241,6 +277,22 @@ export async function getPlotById(id: number): Promise<VegetationPlot | undefine
     // Ensure quadrants array exists for backward compatibility
     if (!plot.quadrants) {
       plot.quadrants = [];
+    }
+    
+    // Ensure subplots array exists for backward compatibility
+    if (!plot.subplots) {
+      plot.subplots = [];
+    } else {
+      // Ensure all subplots have required groundCover and disturbance fields
+      plot.subplots = plot.subplots.map(subplot => ({
+        ...subplot,
+        groundCover: subplot.groundCover || { 
+          shrub: 0, herb: 0, grass: 0, bare: 0, rock: 0, litter: 0 
+        },
+        disturbance: subplot.disturbance || { 
+          grazing: false, poaching: false, lopping: false, invasives: false, fire: false 
+        }
+      }));
     }
   }
   return plot;

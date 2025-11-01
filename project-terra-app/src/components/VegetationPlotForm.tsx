@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAllSpecies, getPlotById, saveVegetationPlot, updateVegetationPlot } from '../db/database';
-import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant } from '../db/database';
+import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant, Subplot, SubplotShape } from '../db/database';
 import { GPSLocation } from './GPSLocation';
 
 // Icons for buttons
@@ -57,6 +57,15 @@ export default function VegetationPlotForm() {
   const [quadrants, setQuadrants] = useState<QuadrantData[]>([]);
   const [selectedQuadrant, setSelectedQuadrant] = useState<Quadrant | 'all' | null>(null); // null means overall plot
   
+  const [subplots, setSubplots] = useState<Subplot[]>([]);
+  const [currentSubplotName, setCurrentSubplotName] = useState('');
+  const [currentSubplotShape, setCurrentSubplotShape] = useState<SubplotShape>('rectangular');
+  const [currentSubplotWidth, setCurrentSubplotWidth] = useState<number>(1);
+  const [currentSubplotHeight, setCurrentSubplotHeight] = useState<number>(1);
+  const [currentSubplotRadius, setCurrentSubplotRadius] = useState<number>(1);
+  const [currentSubplotX, setCurrentSubplotX] = useState<number>(0);
+  const [currentSubplotY, setCurrentSubplotY] = useState<number>(0);
+  
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [measurements, setMeasurements] = useState<PlotMeasurement[]>([]);
   
@@ -103,6 +112,7 @@ export default function VegetationPlotForm() {
               area: plot.dimensions.area
             });
             setQuadrants(plot.quadrants || []);
+            setSubplots(plot.subplots || []);
             setMeasurements(plot.measurements);
           }
         }
@@ -246,6 +256,92 @@ export default function VegetationPlotForm() {
     });
   }
   
+  // Subplot functions
+  function addSubplot() {
+    if (!currentSubplotName.trim()) {
+      alert('Please enter a subplot name');
+      return;
+    }
+    
+    const newSubplot: Subplot = {
+      id: `subplot-${Date.now()}`, // Generate unique ID
+      name: currentSubplotName,
+      shape: currentSubplotShape,
+      ...(currentSubplotShape === 'rectangular' 
+        ? { width: currentSubplotWidth, height: currentSubplotHeight } 
+        : { radius: currentSubplotRadius }),
+      positionX: currentSubplotX,
+      positionY: currentSubplotY,
+      measurements: [],
+      groundCover: { shrub: 0, herb: 0, grass: 0, bare: 0, rock: 0, litter: 0 },
+      disturbance: { grazing: false, poaching: false, lopping: false, invasives: false, fire: false }
+    };
+    
+    setSubplots([...subplots, newSubplot]);
+    
+    // Reset form
+    setCurrentSubplotName('');
+    setCurrentSubplotWidth(1);
+    setCurrentSubplotHeight(1);
+    setCurrentSubplotRadius(1);
+    setCurrentSubplotX(0);
+    setCurrentSubplotY(0);
+  }
+  
+  function removeSubplot(subplotId: string) {
+    setSubplots(subplots.filter(subplot => subplot.id !== subplotId));
+  }
+  
+  function addSubplotMeasurement(subplotId: string) {
+    if (!currentSpeciesId) {
+      alert('Please select a species');
+      return;
+    }
+    
+    const measurement: PlotMeasurement = {
+      speciesId: currentSpeciesId,
+      gbh: currentMeasurement.gbh ? parseFloat(currentMeasurement.gbh) : undefined,
+      dbh: currentMeasurement.dbh ? parseFloat(currentMeasurement.dbh) : undefined,
+      height: currentMeasurement.height ? parseFloat(currentMeasurement.height) : undefined,
+      heightAtFirstBranch: currentMeasurement.heightAtFirstBranch ? parseFloat(currentMeasurement.heightAtFirstBranch) : undefined,
+      canopyCover: currentMeasurement.canopyCover ? parseFloat(currentMeasurement.canopyCover) : undefined,
+    };
+    
+    setSubplots(prev => 
+      prev.map(subplot => 
+        subplot.id === subplotId
+          ? { ...subplot, measurements: [...subplot.measurements, measurement] }
+          : subplot
+      )
+    );
+    
+    // Reset the measurement form
+    setCurrentMeasurement({
+      gbh: '',
+      dbh: '',
+      height: '',
+      heightAtFirstBranch: '',
+      canopyCover: '',
+    });
+    setCurrentSpeciesId(null);
+  }
+  
+  function removeSubplotMeasurement(subplotId: string, measurementIndex: number) {
+    setSubplots(prev => 
+      prev.map(subplot => {
+        if (subplot.id === subplotId) {
+          const newMeasurements = [...subplot.measurements];
+          newMeasurements.splice(measurementIndex, 1);
+          return {
+            ...subplot,
+            measurements: newMeasurements
+          };
+        }
+        return subplot;
+      })
+    );
+  }
+  
   async function savePlot() {
     if (!plotNumber.trim()) {
       alert('Please enter a plot number');
@@ -280,6 +376,7 @@ export default function VegetationPlotForm() {
       },
       measurements,
       quadrants,
+      subplots,
     };
 
     try {
@@ -638,6 +735,228 @@ export default function VegetationPlotForm() {
             );
           })}
         </div>
+      </div>
+      
+      {/* Subplot Management */}
+      <div className="card">
+        <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Subplot Management</h3>
+        
+        {/* Add Subplot Form */}
+        <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg mb-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Subplot Name</label>
+              <input
+                type="text"
+                className="input-field"
+                value={currentSubplotName}
+                onChange={(e) => setCurrentSubplotName(e.target.value)}
+                placeholder="e.g., Corner Herb Plot, Center Tree Plot"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">Shape</label>
+              <select
+                className="input-field"
+                value={currentSubplotShape}
+                onChange={(e) => setCurrentSubplotShape(e.target as SubplotShape)}
+              >
+                <option value="rectangular">Rectangular</option>
+                <option value="circular">Circular</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {currentSubplotShape === 'rectangular' ? (
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Width (m)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    min="0.1"
+                    step="0.1"
+                    value={currentSubplotWidth}
+                    onChange={(e) => setCurrentSubplotWidth(parseFloat(e.target.value) || 1)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Height (m)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    min="0.1"
+                    step="0.1"
+                    value={currentSubplotHeight}
+                    onChange={(e) => setCurrentSubplotHeight(parseFloat(e.target.value) || 1)}
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium mb-2">Radius (m)</label>
+                <input
+                  type="number"
+                  className="input-field"
+                  min="0.1"
+                  step="0.1"
+                  value={currentSubplotRadius}
+                  onChange={(e) => setCurrentSubplotRadius(parseFloat(e.target.value) || 1)}
+                />
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-medium mb-2">Position (X, Y) in meters from NW corner</label>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  className="input-field flex-1"
+                  min="0"
+                  max={dimensions.width}
+                  step="0.1"
+                  value={currentSubplotX}
+                  onChange={(e) => setCurrentSubplotX(parseFloat(e.target.value) || 0)}
+                  placeholder="X"
+                />
+                <input
+                  type="number"
+                  className="input-field flex-1"
+                  min="0"
+                  max={dimensions.height}
+                  step="0.1"
+                  value={currentSubplotY}
+                  onChange={(e) => setCurrentSubplotY(parseFloat(e.target.value) || 0)}
+                  placeholder="Y"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <button 
+            className="btn-primary w-full" 
+            onClick={addSubplot}
+          >
+            Add Subplot
+          </button>
+        </div>
+        
+        {/* Existing Subplots */}
+        {subplots.length > 0 ? (
+          <div className="space-y-4">
+            <h4 className="font-bold text-lg">Defined Subplots ({subplots.length})</h4>
+            {subplots.map((subplot) => (
+              <div key={subplot.id} className="border rounded-lg p-4 bg-gray-100 dark:bg-gray-700/50">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h5 className="font-semibold">{subplot.name || subplot.id}</h5>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      {subplot.shape === 'rectangular' 
+                        ? `${subplot.width}×${subplot.height}m rectangular subplot at (${subplot.positionX}, ${subplot.positionY})m`
+                        : `Circular subplot with ${subplot.radius}m radius at (${subplot.positionX}, ${subplot.positionY})m`}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {subplot.measurements.length} measurements
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeSubplot(subplot.id)}
+                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-semibold"
+                  >
+                    Remove
+                  </button>
+                </div>
+                
+                {/* Add measurement to this subplot */}
+                <div className="mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
+                  <h6 className="font-medium mb-2">Add Measurement</h6>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Species</label>
+                      <select
+                        className="input-field"
+                        value={currentSpeciesId || ''}
+                        onChange={(e) => setCurrentSpeciesId(e.target.value ? parseInt(e.target.value) : null)}
+                      >
+                        <option value="">Select species...</option>
+                        {speciesList.map((species) => (
+                          <option key={species.id} value={species.id}>
+                            {species.name} {species.scientificName && `(${species.scientificName})`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex space-x-2">
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium mb-1">GBH (cm)</label>
+                          <input
+                            type="number"
+                            className="input-field text-sm"
+                            value={currentMeasurement.gbh}
+                            onChange={(e) => setCurrentMeasurement({ ...currentMeasurement, gbh: e.target.value })}
+                            placeholder="cm"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium mb-1">DBH (cm)</label>
+                          <input
+                            type="number"
+                            className="input-field text-sm"
+                            value={currentMeasurement.dbh}
+                            onChange={(e) => setCurrentMeasurement({ ...currentMeasurement, dbh: e.target.value })}
+                            placeholder="cm"
+                          />
+                        </div>
+                      </div>
+                      
+                      <button
+                        className="btn-primary w-full"
+                        onClick={() => addSubplotMeasurement(subplot.id)}
+                      >
+                        Add to {subplot.name || 'Subplot'}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Subplot measurements */}
+                  {subplot.measurements.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <h6 className="font-medium text-sm">Measurements ({subplot.measurements.length})</h6>
+                      {subplot.measurements.map((measurement, index) => {
+                        const species = speciesList.find(s => s.id === measurement.speciesId);
+                        return (
+                          <div key={index} className="bg-white dark:bg-gray-800 p-2 rounded flex justify-between items-center text-sm">
+                            <div>
+                              <span className="font-medium">{species?.name || 'Unknown'}</span>
+                              <span className="ml-2 text-gray-600 dark:text-gray-400">
+                                {measurement.gbh && `GBH: ${measurement.gbh}cm `}
+                                {measurement.dbh && `DBH: ${measurement.dbh}cm `}
+                                {measurement.height && `H: ${measurement.height}m `}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => removeSubplotMeasurement(subplot.id, index)}
+                              className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-xs"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+            No subplots defined yet. Add a subplot to start collecting subplot-specific data.
+          </p>
+        )}
       </div>
       
       {/* Species Measurements */}
