@@ -56,6 +56,13 @@ export interface PlotMeasurement {
   canopyCover?: number; // Canopy cover percentage
 }
 
+export interface PlotDimensions {
+  width: number;
+  height: number;
+  area: number;
+  unit: 'm' | 'ft' | 'cm';
+}
+
 export interface Location {
   latitude: number;
   longitude: number;
@@ -64,19 +71,38 @@ export interface Location {
   source?: 'auto' | 'manual';
 }
 
+export type Quadrant = 'NW' | 'NE' | 'SW' | 'SE';
+
+export interface QuadrantData {
+  quadrant: Quadrant;
+  measurements: PlotMeasurement[];
+  groundCover: GroundCover;
+  disturbance: Disturbance;
+  canopyCover?: number; // Canopy cover percentage for this quadrant
+}
+
+export interface PlotDimensions {
+  width: number; // in meters
+  height: number; // in meters
+  area: number; // in square meters (width * height)
+  unit: 'm'; // for future expansion to other units
+}
+
 export interface VegetationPlot {
   id?: number;
   plotNumber: string;
   location: Location;
+  dimensions: PlotDimensions; // New field for plot size
   date: Date;
   observers: string[];
   habitat?: string;
   slope?: number;
   aspect?: number;
   notes?: string;
-  groundCover: GroundCover;
-  disturbance: Disturbance;
-  measurements: PlotMeasurement[];
+  groundCover: GroundCover; // Overall plot ground cover
+  disturbance: Disturbance; // Overall plot disturbance
+  measurements: PlotMeasurement[]; // Overall plot measurements
+  quadrants?: QuadrantData[]; // Quadrant-specific data
   canopyPhotos?: number[]; // References to CanopyPhoto IDs
   createdAt: Date;
   updatedAt: Date;
@@ -171,6 +197,21 @@ export async function getAllPlots(): Promise<VegetationPlot[]> {
       invasives: !!plot.disturbance?.invasives,
       fire: !!plot.disturbance?.fire
     };
+    
+    // Ensure dimensions exist for backward compatibility
+    if (!plot.dimensions) {
+      plot.dimensions = {
+        width: 10,  // Default to 10x10m if not specified
+        height: 10,
+        area: 100,
+        unit: 'm'
+      };
+    }
+    
+    // Ensure quadrants array exists for backward compatibility
+    if (!plot.quadrants) {
+      plot.quadrants = [];
+    }
     return plot;
   });
 }
@@ -186,6 +227,21 @@ export async function getPlotById(id: number): Promise<VegetationPlot | undefine
       invasives: !!plot.disturbance?.invasives,
       fire: !!plot.disturbance?.fire
     };
+    
+    // Ensure dimensions exist for backward compatibility
+    if (!plot.dimensions) {
+      plot.dimensions = {
+        width: 10,  // Default to 10x10m if not specified
+        height: 10,
+        area: 100,
+        unit: 'm'
+      };
+    }
+    
+    // Ensure quadrants array exists for backward compatibility
+    if (!plot.quadrants) {
+      plot.quadrants = [];
+    }
   }
   return plot;
 }

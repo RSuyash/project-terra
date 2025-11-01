@@ -64,7 +64,7 @@ export function PlotList() {
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                   {plot.habitat || 'No habitat specified'}
                 </p>
-                <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex items-center">
+                <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                   </svg>
@@ -75,6 +75,12 @@ export function PlotList() {
                     </span>
                   )}
                 </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {plot.dimensions ? `${plot.dimensions.width}×${plot.dimensions.height}m (${plot.dimensions.area}m²)` : 'No size data'}
+                </div>
                 <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 space-x-4">
                   <span>
                     <strong className="font-semibold">{plot.measurements.length}</strong> measurements
@@ -83,6 +89,17 @@ export function PlotList() {
                     <strong className="font-semibold">{new Set(plot.measurements.map(m => m.speciesId)).size}</strong> species
                   </span>
                 </div>
+                {plot.quadrants && plot.quadrants.length > 0 && (
+                  <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    <span className="font-medium">Quadrants: </span>
+                    {plot.quadrants.length}/4 with data
+                    {plot.quadrants.map(quad => (
+                      <span key={quad.quadrant} className="ml-2 px-1.5 py-0.5 bg-primary-100 dark:bg-primary-900/50 text-primary-800 dark:text-primary-200 rounded text-xs">
+                        {quad.quadrant}: {quad.measurements.length}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="mt-6 flex justify-between items-center">
                 <span className="text-xs text-gray-400 dark:text-gray-500">

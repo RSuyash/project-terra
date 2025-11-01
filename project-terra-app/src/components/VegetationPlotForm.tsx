@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAllSpecies, getPlotById, saveVegetationPlot, updateVegetationPlot } from '../db/database';
-import type { PlotMeasurement, Species, Disturbance, Location } from '../db/database';
+import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant } from '../db/database';
 import { GPSLocation } from './GPSLocation';
 
 // Icons for buttons
@@ -48,6 +48,15 @@ export default function VegetationPlotForm() {
   
   const [location, setLocation] = useState<Location | null>(null);
   
+  const [dimensions, setDimensions] = useState({
+    width: 10,
+    height: 10,
+    area: 100
+  });
+  
+  const [quadrants, setQuadrants] = useState<QuadrantData[]>([]);
+  const [selectedQuadrant, setSelectedQuadrant] = useState<Quadrant | 'all' | null>(null); // null means overall plot
+  
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [measurements, setMeasurements] = useState<PlotMeasurement[]>([]);
   
@@ -88,6 +97,12 @@ export default function VegetationPlotForm() {
               ...plot.location,
               source: plot.location.source || 'auto' // Default to 'auto' for existing plots
             });
+            setDimensions({
+              width: plot.dimensions.width,
+              height: plot.dimensions.height,
+              area: plot.dimensions.area
+            });
+            setQuadrants(plot.quadrants || []);
             setMeasurements(plot.measurements);
           }
         }
@@ -144,6 +159,93 @@ export default function VegetationPlotForm() {
     setMeasurements(measurements.filter((_, i) => i !== index));
   }
   
+  // Quadrant functions
+  function addQuadrantMeasurement() {
+    if (!currentSpeciesId) {
+      alert('Please select a species');
+      return;
+    }
+    
+    // Create measurement object
+    const measurement: PlotMeasurement = {
+      speciesId: currentSpeciesId,
+      gbh: currentMeasurement.gbh ? parseFloat(currentMeasurement.gbh) : undefined,
+      dbh: currentMeasurement.dbh ? parseFloat(currentMeasurement.dbh) : undefined,
+      height: currentMeasurement.height ? parseFloat(currentMeasurement.height) : undefined,
+      heightAtFirstBranch: currentMeasurement.heightAtFirstBranch ? parseFloat(currentMeasurement.heightAtFirstBranch) : undefined,
+      canopyCover: currentMeasurement.canopyCover ? parseFloat(currentMeasurement.canopyCover) : undefined,
+    };
+    
+    if (selectedQuadrant === 'all') {
+      // Add to all quadrants
+      const updatedQuadrants = [...quadrants];
+      for (const quad of ['NW', 'NE', 'SW', 'SE'] as Quadrant[]) {
+        const existingQuadIndex = updatedQuadrants.findIndex(q => q.quadrant === quad);
+        if (existingQuadIndex !== -1) {
+          updatedQuadrants[existingQuadIndex].measurements.push(measurement);
+        } else {
+          updatedQuadrants.push({
+            quadrant: quad,
+            measurements: [measurement],
+            groundCover: { shrub: 0, herb: 0, grass: 0, bare: 0, rock: 0, litter: 0 },
+            disturbance: { grazing: false, poaching: false, lopping: false, invasives: false, fire: false }
+          });
+        }
+      }
+      setQuadrants(updatedQuadrants);
+    } else if (selectedQuadrant) {
+      // Add to specific quadrant
+      const quadIndex = quadrants.findIndex(q => q.quadrant === selectedQuadrant);
+      if (quadIndex !== -1) {
+        // Update existing quadrant
+        const updatedQuadrants = [...quadrants];
+        updatedQuadrants[quadIndex] = {
+          ...updatedQuadrants[quadIndex],
+          measurements: [...updatedQuadrants[quadIndex].measurements, measurement]
+        };
+        setQuadrants(updatedQuadrants);
+      } else {
+        // Add new quadrant
+        setQuadrants([
+          ...quadrants,
+          {
+            quadrant: selectedQuadrant,
+            measurements: [measurement],
+            groundCover: { shrub: 0, herb: 0, grass: 0, bare: 0, rock: 0, litter: 0 },
+            disturbance: { grazing: false, poaching: false, lopping: false, invasives: false, fire: false }
+          }
+        ]);
+      }
+    } else {
+      // Add to overall plot
+      setMeasurements([...measurements, measurement]);
+    }
+    
+    // Reset the form
+    setCurrentMeasurement({
+      gbh: '',
+      dbh: '',
+      height: '',
+      heightAtFirstBranch: '',
+      canopyCover: '',
+    });
+    setCurrentSpeciesId(null);
+  }
+  
+  function removeQuadrantMeasurement(quadrant: Quadrant, measurementIndex: number) {
+    setQuadrants(prev => {
+      return prev.map(q => {
+        if (q.quadrant === quadrant) {
+          return {
+            ...q,
+            measurements: q.measurements.filter((_, i) => i !== measurementIndex)
+          };
+        }
+        return q;
+      }).filter(q => q.measurements.length > 0); // Remove quadrant if no measurements left
+    });
+  }
+  
   async function savePlot() {
     if (!plotNumber.trim()) {
       alert('Please enter a plot number');
@@ -161,6 +263,12 @@ export default function VegetationPlotForm() {
       observers: observers.split(',').map(o => o.trim()).filter(o => o),
       notes,
       location: location!, // Use the full Location object
+      dimensions: {
+        width: dimensions.width,
+        height: dimensions.height,
+        area: dimensions.area,
+        unit: 'm'
+      },
       date: new Date(),
       groundCover,
       disturbance: {
@@ -171,6 +279,7 @@ export default function VegetationPlotForm() {
         fire: !!disturbance.fire
       },
       measurements,
+      quadrants,
     };
 
     try {
@@ -284,6 +393,85 @@ export default function VegetationPlotForm() {
         </div>
       </div>
       
+      {/* Plot Size */}
+      <div className="card">
+        <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Plot Size</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">Standard Sizes</label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: '5×5m (25m²)', width: 5, height: 5, area: 25 },
+                { label: '10×10m (100m²)', width: 10, height: 10, area: 100 },
+                { label: '20×20m (400m²)', width: 20, height: 20, area: 400 },
+                { label: '30×30m (900m²)', width: 30, height: 30, area: 900 },
+                { label: '40×40m (1600m²)', width: 40, height: 40, area: 1600 }
+              ].map((size) => (
+                <button
+                  key={size.label}
+                  type="button"
+                  className={`btn-secondary py-2 text-sm ${
+                    dimensions.width === size.width && dimensions.height === size.height
+                      ? 'bg-primary-600 text-white border-primary-600'
+                      : ''
+                  }`}
+                  onClick={() => setDimensions({ width: size.width, height: size.height, area: size.area })}
+                >
+                  {size.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Custom Size</label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium mb-1">Width (m)</label>
+                <input
+                  type="number"
+                  className="input-field text-sm"
+                  min="1"
+                  max="100"
+                  value={dimensions.width}
+                  onChange={(e) => {
+                    const width = Math.max(1, Math.min(100, parseInt(e.target.value) || 1));
+                    setDimensions({
+                      width,
+                      height: dimensions.height,
+                      area: width * dimensions.height
+                    });
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Height (m)</label>
+                <input
+                  type="number"
+                  className="input-field text-sm"
+                  min="1"
+                  max="100"
+                  value={dimensions.height}
+                  onChange={(e) => {
+                    const height = Math.max(1, Math.min(100, parseInt(e.target.value) || 1));
+                    setDimensions({
+                      width: dimensions.width,
+                      height,
+                      area: dimensions.width * height
+                    });
+                  }}
+                />
+              </div>
+            </div>
+            <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Calculated Area</div>
+              <div className="text-lg font-bold">{dimensions.area} m²</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <GPSLocation onLocationChange={handleLocationChange} />
       
       {/* Ground Cover */}
@@ -328,6 +516,127 @@ export default function VegetationPlotForm() {
               <span className="text-sm capitalize">{key}</span>
             </label>
           ))}
+        </div>
+      </div>
+      
+      {/* Quadrant-Specific Data */}
+      <div className="card">
+        <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Quadrant-Specific Data</h3>
+        
+        <div className="space-y-4">
+          {(['NW', 'NE', 'SW', 'SE'] as Quadrant[]).map((quad) => {
+            const quadData = quadrants.find(q => q.quadrant === quad);
+            const quadGroundCover = quadData ? quadData.groundCover : { shrub: 0, herb: 0, grass: 0, bare: 0, rock: 0, litter: 0 };
+            const quadDisturbance = quadData ? quadData.disturbance : { grazing: false, poaching: false, lopping: false, invasives: false, fire: false };
+            
+            return (
+              <div key={quad} className="border rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-lg">{quad} Quadrant</h4>
+                
+                <div className="mb-4">
+                  <h5 className="font-medium mb-2">Ground Cover (%)</h5>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {Object.entries(quadGroundCover).map(([key, value]) => (
+                      <div key={key}>
+                        <label className="block text-sm font-medium mb-2 capitalize">{key}</label>
+                        <input
+                          type="number"
+                          className="input-field"
+                          min="0"
+                          max="100"
+                          value={value}
+                          onChange={(e) => {
+                            const newValue = parseInt(e.target.value) || 0;
+                            setQuadrants(prev => {
+                              const quadIndex = prev.findIndex(q => q.quadrant === quad);
+                              if (quadIndex !== -1) {
+                                const updatedQuadrants = [...prev];
+                                updatedQuadrants[quadIndex] = {
+                                  ...updatedQuadrants[quadIndex],
+                                  groundCover: {
+                                    ...updatedQuadrants[quadIndex].groundCover,
+                                    [key]: newValue
+                                  }
+                                };
+                                return updatedQuadrants;
+                              } else {
+                                // Create new quadrant if it doesn't exist
+                                return [
+                                  ...prev,
+                                  {
+                                    quadrant: quad,
+                                    measurements: [],
+                                    groundCover: {
+                                      shrub: key === 'shrub' ? newValue : quadGroundCover.shrub,
+                                      herb: key === 'herb' ? newValue : quadGroundCover.herb,
+                                      grass: key === 'grass' ? newValue : quadGroundCover.grass,
+                                      bare: key === 'bare' ? newValue : quadGroundCover.bare,
+                                      rock: key === 'rock' ? newValue : quadGroundCover.rock,
+                                      litter: key === 'litter' ? newValue : quadGroundCover.litter
+                                    },
+                                    disturbance: quadDisturbance
+                                  }
+                                ];
+                              }
+                            });
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h5 className="font-medium mb-2">Disturbance Indicators</h5>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {Object.entries(quadDisturbance).map(([key, value]) => (
+                      <label key={key} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!value}
+                          onChange={(e) => {
+                            setQuadrants(prev => {
+                              const quadIndex = prev.findIndex(q => q.quadrant === quad);
+                              if (quadIndex !== -1) {
+                                const updatedQuadrants = [...prev];
+                                updatedQuadrants[quadIndex] = {
+                                  ...updatedQuadrants[quadIndex],
+                                  disturbance: {
+                                    ...updatedQuadrants[quadIndex].disturbance,
+                                    [key]: e.target.checked
+                                  }
+                                };
+                                return updatedQuadrants;
+                              } else {
+                                // Create new quadrant if it doesn't exist
+                                return [
+                                  ...prev,
+                                  {
+                                    quadrant: quad,
+                                    measurements: [],
+                                    groundCover: quadGroundCover,
+                                    disturbance: {
+                                      grazing: key === 'grazing' ? e.target.checked : quadDisturbance.grazing,
+                                      poaching: key === 'poaching' ? e.target.checked : quadDisturbance.poaching,
+                                      lopping: key === 'lopping' ? e.target.checked : quadDisturbance.lopping,
+                                      invasives: key === 'invasives' ? e.target.checked : quadDisturbance.invasives,
+                                      fire: key === 'fire' ? e.target.checked : quadDisturbance.fire
+                                    }
+                                  }
+                                ];
+                              }
+                            });
+                          }}
+                          className="w-5 h-5 rounded text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="text-sm capitalize">{key}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
       
@@ -406,20 +715,62 @@ export default function VegetationPlotForm() {
             </div>
           </div>
           
-          <button className="btn-primary w-full flex items-center justify-center" onClick={addMeasurement}>
+          <div>
+            <label className="block text-sm font-medium mb-2">Assign to Quadrant</label>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              <button
+                type="button"
+                className={`btn-secondary py-2 text-sm ${
+                  selectedQuadrant === null
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : ''
+                }`}
+                onClick={() => setSelectedQuadrant(null)}
+              >
+                Overall
+              </button>
+              {(['NW', 'NE', 'SW', 'SE'] as Quadrant[]).map((quad) => (
+                <button
+                  type="button"
+                  key={quad}
+                  className={`btn-secondary py-2 text-sm ${
+                    selectedQuadrant === quad
+                      ? 'bg-primary-600 text-white border-primary-600'
+                      : ''
+                  }`}
+                  onClick={() => setSelectedQuadrant(quad)}
+                >
+                  {quad}
+                </button>
+              ))}
+              <button
+                type="button"
+                className={`btn-secondary py-2 text-sm ${
+                  selectedQuadrant === 'all'
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : ''
+                }`}
+                onClick={() => setSelectedQuadrant('all')}
+              >
+                All
+              </button>
+            </div>
+          </div>
+          
+          <button className="btn-primary w-full flex items-center justify-center" onClick={addQuadrantMeasurement}>
             <PlusIcon />
-            Add Measurement
+            Add to {selectedQuadrant ? (selectedQuadrant === 'all' ? 'All Quadrants' : selectedQuadrant) : 'Overall Plot'}
           </button>
         </div>
         
-        {/* Existing Measurements */}
+        {/* Overall Plot Measurements */}
         {measurements.length > 0 && (
           <div className="mt-6 space-y-2">
-            <h4 className="font-bold">Added Measurements ({measurements.length})</h4>
+            <h4 className="font-bold">Overall Plot Measurements ({measurements.length})</h4>
             {measurements.map((measurement, index) => {
               const species = speciesList.find(s => s.id === measurement.speciesId);
               return (
-                <div key={index} className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex justify-between items-center">
+                <div key={`overall-${index}`} className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg flex justify-between items-center">
                   <div>
                     <span className="font-semibold">{species?.name || 'Unknown'}</span>
                     <span className="text-xs ml-2 text-gray-600 dark:text-gray-400">
@@ -430,7 +781,11 @@ export default function VegetationPlotForm() {
                     </span>
                   </div>
                   <button
-                    onClick={() => removeMeasurement(index)}
+                    onClick={() => {
+                      const newMeasurements = [...measurements];
+                      newMeasurements.splice(index, 1);
+                      setMeasurements(newMeasurements);
+                    }}
                     className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-semibold"
                   >
                     Remove
@@ -438,6 +793,42 @@ export default function VegetationPlotForm() {
                 </div>
               );
             })}
+          </div>
+        )}
+        
+        {/* Quadrant Measurements */}
+        {quadrants.length > 0 && (
+          <div className="mt-6 space-y-4">
+            <h4 className="font-bold">Quadrant-Specific Measurements</h4>
+            {quadrants.map((quad, quadIndex) => (
+              <div key={quad.quadrant} className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-800/30">
+                <h5 className="font-semibold mb-2">{quad.quadrant} Quadrant ({quad.measurements.length} measurements)</h5>
+                <div className="space-y-2">
+                  {quad.measurements.map((measurement, measurementIndex) => {
+                    const species = speciesList.find(s => s.id === measurement.speciesId);
+                    return (
+                      <div key={`quad-${quad.quadrant}-${measurementIndex}`} className="bg-white dark:bg-gray-700 p-2 rounded flex justify-between items-center">
+                        <div>
+                          <span className="font-semibold">{species?.name || 'Unknown'}</span>
+                          <span className="text-xs ml-2 text-gray-600 dark:text-gray-300">
+                            {measurement.gbh && `GBH: ${measurement.gbh}cm `}
+                            {measurement.dbh && `DBH: ${measurement.dbh}cm `}
+                            {measurement.height && `H: ${measurement.height}m `}
+                            {measurement.canopyCover && `C: ${measurement.canopyCover}%`}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => removeQuadrantMeasurement(quad.quadrant, measurementIndex)}
+                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
