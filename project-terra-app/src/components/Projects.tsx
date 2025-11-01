@@ -5,6 +5,7 @@ import type { VegetationPlot } from '../db/database';
 import { calculateAllIndices } from '../utils/biodiversity';
 import type { BiodiversityIndices } from '../utils/biodiversity';
 
+// Define a project with associated plots
 interface Project {
   id: number;
   name: string;
@@ -22,12 +23,15 @@ export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [plots, setPlots] = useState<PlotWithBiodiversity[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showAddPlotForm, setShowAddPlotForm] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [newProject, setNewProject] = useState({
     name: '',
     description: '',
     plotIds: [] as number[],
   });
-  const [selectedPlotIds, setSelectedPlotIds] = useState<number[]>([]);
+  const [addPlotMode, setAddPlotMode] = useState<'new' | 'existing' | null>(null); // Mode for adding plots
+  const [selectedExistingPlotIds, setSelectedExistingPlotIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,9 +40,7 @@ export default function Projects() {
       try {
         setIsLoading(true);
         
-        const [allPlots] = await Promise.all([
-          getAllPlots(),
-        ]);
+        const allPlots = await getAllPlots();
         
         // Calculate biodiversity for each plot
         const plotsWithBiodiversity = allPlots.map(plot => ({
@@ -48,7 +50,7 @@ export default function Projects() {
         
         setPlots(plotsWithBiodiversity);
         
-        // For now, create a mock project from existing plots
+        // For now, create a default project from existing plots
         // In a real app, you'd have a separate projects store
         if (allPlots.length > 0) {
           const mockProject: Project = {
@@ -61,7 +63,16 @@ export default function Projects() {
           };
           setProjects([mockProject]);
         } else {
-          setProjects([]);
+          // Create an empty project if no plots exist yet
+          const emptyProject: Project = {
+            id: 1,
+            name: 'My First Project',
+            description: 'A new research project',
+            plotIds: [],
+            createdDate: new Date(),
+            updatedDate: new Date(),
+          };
+          setProjects([emptyProject]);
         }
       } catch (err) {
         console.error("Failed to load projects and plots:", err);
@@ -89,22 +100,58 @@ export default function Projects() {
       id: Date.now(), // In a real app, this would come from the database
       name: newProject.name,
       description: newProject.description,
-      plotIds: selectedPlotIds,
+      plotIds: newProject.plotIds,
       createdDate: new Date(),
       updatedDate: new Date(),
     };
 
     setProjects([...projects, newProjectObj]);
     setNewProject({ name: '', description: '', plotIds: [] });
-    setSelectedPlotIds([]);
     setShowCreateForm(false);
   };
 
-  const togglePlotSelection = (plotId: number) => {
-    setSelectedPlotIds(prev => 
-      prev.includes(plotId) 
-        ? prev.filter(id => id !== plotId) 
-        : [...prev, plotId]
+  const handleAddPlotToProject = async () => {
+    if (!selectedProjectId) return;
+    
+    if (addPlotMode === 'new') {
+      // Create a new plot and add it to the project
+      // This will redirect to the plot form with project context
+      // For now, we'll just close the form
+      alert('Creating a new plot for this project. Redirecting to plot form...');
+      // In a real app, you might pass the project ID as a query parameter
+      setShowAddPlotForm(false);
+      setAddPlotMode(null);
+      setSelectedExistingPlotIds([]);
+    } else if (addPlotMode === 'existing' && selectedExistingPlotIds.length > 0) {
+      // Add existing plots to the project
+      setProjects(prevProjects => 
+        prevProjects.map(project => 
+          project.id === selectedProjectId
+            ? { 
+                ...project, 
+                plotIds: [...new Set([...project.plotIds, ...selectedExistingPlotIds])], // Avoid duplicates
+                updatedDate: new Date()
+              }
+            : project
+        )
+      );
+      setShowAddPlotForm(false);
+      setAddPlotMode(null);
+      setSelectedExistingPlotIds([]);
+    }
+  };
+
+  const removePlotFromProject = (projectId: number, plotId: number) => {
+    setProjects(prevProjects => 
+      prevProjects.map(project => 
+        project.id === projectId
+          ? { 
+              ...project, 
+              plotIds: project.plotIds.filter(id => id !== plotId),
+              updatedDate: new Date()
+            }
+          : project
+      )
     );
   };
 
@@ -225,8 +272,20 @@ export default function Projects() {
                       <label key={plot.id} className="flex items-start space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={selectedPlotIds.includes(plot.id!)}
-                          onChange={() => togglePlotSelection(plot.id!)}
+                          checked={newProject.plotIds.includes(plot.id!)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewProject(prev => ({
+                                ...prev,
+                                plotIds: [...prev.plotIds, plot.id!]
+                              }));
+                            } else {
+                              setNewProject(prev => ({
+                                ...prev,
+                                plotIds: prev.plotIds.filter(id => id !== plot.id!)
+                              }));
+                            }
+                          }}
                           className="mt-1 w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
                         />
                         <div className="flex-1">
@@ -246,7 +305,7 @@ export default function Projects() {
               <button
                 className="btn-primary flex-1"
                 onClick={handleCreateProject}
-                disabled={selectedPlotIds.length === 0 || !newProject.name.trim()}
+                disabled={!newProject.name.trim()}
               >
                 Create Project
               </button>
@@ -255,12 +314,149 @@ export default function Projects() {
                 onClick={() => {
                   setShowCreateForm(false);
                   setNewProject({ name: '', description: '', plotIds: [] });
-                  setSelectedPlotIds([]);
                 }}
               >
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Plot to Project Form */}
+      {showAddPlotForm && selectedProjectId && (
+        <div className="card">
+          <h3 className="text-xl font-bold mb-4">Add Plot to Project</h3>
+          
+          <div className="space-y-4">
+            {!addPlotMode ? (
+              // Choose mode: new plot or existing plot
+              <div className="space-y-3">
+                <p className="text-gray-700 dark:text-gray-300">
+                  How would you like to add a plot to this project?
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button
+                    className="btn-primary p-4 text-center"
+                    onClick={() => setAddPlotMode('new')}
+                  >
+                    <div className="font-semibold">Create New Plot</div>
+                    <div className="text-sm opacity-80">Start a new vegetation survey</div>
+                  </button>
+                  
+                  <button
+                    className="btn-secondary p-4 text-center"
+                    onClick={() => setAddPlotMode('existing')}
+                  >
+                    <div className="font-semibold">Add Existing Plot</div>
+                    <div className="text-sm opacity-80">Select from saved plots</div>
+                  </button>
+                </div>
+              </div>
+            ) : addPlotMode === 'new' ? (
+              // Create new plot option
+              <div className="space-y-4">
+                <h4 className="font-semibold">Create New Plot for Project</h4>
+                <p className="text-gray-600 dark:text-gray-400">
+                  This will take you to the plot creation form where the plot will be automatically associated with this project.
+                </p>
+                
+                <div className="flex gap-3 pt-2">
+                  <Link 
+                    to={`/vegetation-plot`} 
+                    className="btn-primary flex-1"
+                    onClick={() => {
+                      // Here you might pass the project ID as a parameter
+                      setShowAddPlotForm(false);
+                      setAddPlotMode(null);
+                    }}
+                  >
+                    Create New Plot
+                  </Link>
+                  <button
+                    className="btn-secondary flex-1"
+                    onClick={() => {
+                      setShowAddPlotForm(false);
+                      setAddPlotMode(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Add existing plots
+              <div className="space-y-4">
+                <h4 className="font-semibold">Select Existing Plots</h4>
+                <p className="text-gray-600 dark:text-gray-400 mb-3">
+                  Select the plots to add to this project (hold Ctrl/Cmd to select multiple)
+                </p>
+                
+                {/* Filter plots that are not already in this project */}
+                {plots.length === 0 ? (
+                  <p className="text-center py-4 text-gray-500 dark:text-gray-400">
+                    No plots available. Create plots first.
+                  </p>
+                ) : (
+                  <div className="max-h-60 overflow-y-auto border rounded-lg p-2">
+                    {/* Check if there are plots not in this project */}
+                    {plots.filter(plot => !projects.find(p => p.id === selectedProjectId)?.plotIds.includes(plot.id!)).length === 0 ? (
+                      <p className="text-center py-4 text-gray-500 dark:text-gray-400">
+                        All plots are already in this project.
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {plots
+                          .filter(plot => !projects.find(p => p.id === selectedProjectId)?.plotIds.includes(plot.id!))
+                          .map(plot => (
+                          <label key={plot.id} className="flex items-start space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedExistingPlotIds.includes(plot.id!)}
+                              onChange={() => {
+                                setSelectedExistingPlotIds(prev => 
+                                  prev.includes(plot.id!) 
+                                    ? prev.filter(id => id !== plot.id!) 
+                                    : [...prev, plot.id!]
+                                );
+                              }}
+                              className="mt-1 w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium">{plot.plotNumber}</div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400">
+                                {plot.measurements.length} measurements, {new Set(plot.measurements.map(m => m.speciesId)).size} species
+                              </div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div className="flex gap-3 pt-4">
+                  <button
+                    className="btn-primary flex-1"
+                    onClick={handleAddPlotToProject}
+                    disabled={selectedExistingPlotIds.length === 0}
+                  >
+                    Add Selected Plots
+                  </button>
+                  <button
+                    className="btn-secondary flex-1"
+                    onClick={() => {
+                      setShowAddPlotForm(false);
+                      setAddPlotMode(null);
+                      setSelectedExistingPlotIds([]);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -319,6 +515,35 @@ export default function Projects() {
                         <div className="font-semibold">{stats.avgSpeciesRichness}</div>
                       </div>
                     </div>
+                    
+                    {/* Show plots in this project */}
+                    <div className="mt-3">
+                      <div className="text-sm font-semibold mb-1">Plots in Project:</div>
+                      {project.plotIds.length === 0 ? (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 italic">No plots added yet</div>
+                      ) : (
+                        <div className="max-h-32 overflow-y-auto">
+                          {plots
+                            .filter(plot => project.plotIds.includes(plot.id!))
+                            .map(plot => (
+                              <div key={plot.id} className="flex justify-between items-center text-xs bg-gray-50 dark:bg-gray-700 p-1.5 rounded mt-1">
+                                <span className="truncate">{plot.plotNumber}</span>
+                                <button 
+                                  className="text-red-500 hover:text-red-700 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removePlotFromProject(project.id, plot.id!);
+                                  }}
+                                  title="Remove from project"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))
+                          }
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 
@@ -352,6 +577,19 @@ export default function Projects() {
                     >
                       Canopy
                     </Link>
+                  </div>
+                  
+                  <div className="pt-2">
+                    <button 
+                      className="btn-primary w-full text-xs py-2"
+                      onClick={() => {
+                        setSelectedProjectId(project.id);
+                        setShowAddPlotForm(true);
+                        setAddPlotMode(null);
+                      }}
+                    >
+                      Add Plot to Project
+                    </button>
                   </div>
                 </div>
               </div>
