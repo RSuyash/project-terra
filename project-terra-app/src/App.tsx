@@ -7,6 +7,7 @@ import CSVExport from './components/CSVExport';
 import CanopyAnalysis from './components/CanopyAnalysis';
 import Projects from './components/Projects';
 import ProjectDetail from './components/ProjectDetail';
+import Dashboard from './components/Dashboard';
 
 interface CardProps {
   title: string;
@@ -37,26 +38,10 @@ const BiodiversityIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className
 const SpeciesAreaIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>;
 const ExportIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>;
 const ProjectIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>;
+const DashboardIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
 
 
-function Dashboard() {
-  return (
-    <>
-        <div className="text-center mb-16">
-            <h1 className="text-6xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">Project Terra</h1>
-            <p className="text-2xl text-gray-600 dark:text-gray-400 font-light">Your all-in-one environmental science field data toolkit.</p>
-        </div>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card title="Research Projects" description="Group related plots and manage them together." link="/projects" linkText="Manage Projects" icon={<ProjectIcon />} />
-            <Card title="Vegetation Plotting" description="Create and manage vegetation survey plots with species, measurements, and GPS data." link="/vegetation-plot" linkText="Start New Plot" icon={<VegetationIcon />} />
-            <Card title="View Saved Plots" description="View, edit, or delete your saved vegetation plots." link="/plots" linkText="View Plots" icon={<PlotsIcon />} />
-            <Card title="Biodiversity Analysis" description="Calculate diversity indices: Shannon-Wiener, Simpson, Richness, and more." link="/biodiversity" linkText="Analyze Data" icon={<BiodiversityIcon />} />
-            <Card title="Species-Area Curve" description="Generate and visualize species-area relationships from nested plots." link="/species-area" linkText="Create Curve" icon={<SpeciesAreaIcon />} />
-            <Card title="CSV Export" description="Export your data to CSV for analysis in spreadsheets or other tools." link="/export" linkText="Export Data" icon={<ExportIcon />} />
-        </div>
-    </>
-  );
-}
+
 
 
 function App() {
@@ -64,14 +49,41 @@ function App() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <div className="container mx-auto px-4 py-12">
         <header className="text-center mb-12">
-            <Link to="/" className="text-6xl font-extrabold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200">
-                Project Terra 🌱
-            </Link>
+            <div className="flex justify-between items-center mb-8">
+                <Link to="/" className="text-3xl font-extrabold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200">
+                    Project Terra 🌱
+                </Link>
+                <nav>
+                    <Link to="/dashboard" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 mr-6">
+                        Dashboard
+                    </Link>
+                    <Link to="/plots" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">
+                        Plots
+                    </Link>
+                </nav>
+            </div>
         </header>
         
         <main>
             <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={
+                  <>
+                    <div className="text-center mb-16">
+                        <h1 className="text-6xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">Project Terra</h1>
+                        <p className="text-2xl text-gray-600 dark:text-gray-400 font-light">Your all-in-one environmental science field data toolkit.</p>
+                    </div>
+                    <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <Card title="Dashboard" description="Overview of your ecological fieldwork data and metrics." link="/dashboard" linkText="View Dashboard" icon={<DashboardIcon />} />
+                        <Card title="Research Projects" description="Group related plots and manage them together." link="/projects" linkText="Manage Projects" icon={<ProjectIcon />} />
+                        <Card title="Vegetation Plotting" description="Create and manage vegetation survey plots with species, measurements, and GPS data." link="/vegetation-plot" linkText="Start New Plot" icon={<VegetationIcon />} />
+                        <Card title="View Saved Plots" description="View, edit, or delete your saved vegetation plots." link="/plots" linkText="View Plots" icon={<PlotsIcon />} />
+                        <Card title="Biodiversity Analysis" description="Calculate diversity indices: Shannon-Wiener, Simpson, Richness, and more." link="/biodiversity" linkText="Analyze Data" icon={<BiodiversityIcon />} />
+                        <Card title="Species-Area Curve" description="Generate and visualize species-area relationships from nested plots." link="/species-area" linkText="Create Curve" icon={<SpeciesAreaIcon />} />
+                        <Card title="CSV Export" description="Export your data to CSV for analysis in spreadsheets or other tools." link="/export" linkText="Export Data" icon={<ExportIcon />} />
+                    </div>
+                  </>
+                } />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/vegetation-plot" element={<VegetationPlotForm />} />
                 <Route path="/plots" element={<PlotList />} />
                 <Route path="/plot/:id/edit" element={<VegetationPlotForm />} />

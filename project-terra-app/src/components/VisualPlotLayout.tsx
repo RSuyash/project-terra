@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { VegetationPlot } from '../db/database';
 
 interface VisualPlotLayoutProps {
@@ -132,7 +132,7 @@ const VisualPlotLayout: React.FC<VisualPlotLayoutProps> = ({
                 : `${quad.id} Quadrant\nNo data yet`;
                 
               return (
-                <g key={quad.id} filter="url(#textShadow)">
+                <g key={quad.id} filter="url(#textShadow)" className="group">
                   {/* Add invisible hover area for tooltip */}
                   <rect
                     x={quad.id === 'NW' || quad.id === 'SW' ? offsetX : quadBoundaryX}
@@ -140,9 +140,10 @@ const VisualPlotLayout: React.FC<VisualPlotLayoutProps> = ({
                     width={quad.id === 'NW' || quad.id === 'SW' ? displayWidth / 2 : displayWidth / 2}
                     height={quad.id === 'NW' || quad.id === 'NE' ? displayHeight / 2 : displayHeight / 2}
                     fill="none"
-                    className="pointer-events-auto"
-                    data-tooltip={tooltipText}
-                  />
+                    className="cursor-pointer opacity-0 group-hover:opacity-100"
+                  >
+                    <title>{tooltipText}</title>
+                  </rect>
                   {/* Q1-Q4 number label */}
                   <text
                     x={quad.x}
@@ -195,7 +196,7 @@ const VisualPlotLayout: React.FC<VisualPlotLayoutProps> = ({
           
           if (subplot.shape === 'rectangular' && subplot.width && subplot.height) {
             element = (
-              <g key={subplot.id} filter="url(#subplotShadow)" className="relative">
+              <g key={subplot.id} filter="url(#subplotShadow)" className="group">
                 <rect
                   x={toDisplayX(subplot.positionX)}
                   y={toDisplayY(subplot.positionY)}
@@ -207,8 +208,9 @@ const VisualPlotLayout: React.FC<VisualPlotLayoutProps> = ({
                   rx="3"
                   className="cursor-pointer hover:stroke-blue-600 hover:opacity-90 transition-all"
                   onClick={() => onClickSubplot?.(subplot.id)}
-                  data-tooltip={tooltipText}
-                />
+                >
+                  <title>{tooltipText}</title>
+                </rect>
                 <rect
                   x={toDisplayX(subplot.positionX)}
                   y={toDisplayY(subplot.positionY)}
@@ -223,7 +225,7 @@ const VisualPlotLayout: React.FC<VisualPlotLayoutProps> = ({
             );
           } else if (subplot.shape === 'circular' && subplot.radius) {
             element = (
-              <g key={subplot.id} filter="url(#subplotShadow)" className="relative">
+              <g key={subplot.id} filter="url(#subplotShadow)" className="group">
                 <circle
                   cx={toDisplayX(subplot.positionX + (subplot.radius || 0))}
                   cy={toDisplayY(subplot.positionY + (subplot.radius || 0))}
@@ -233,8 +235,9 @@ const VisualPlotLayout: React.FC<VisualPlotLayoutProps> = ({
                   strokeWidth="1.5"
                   className="cursor-pointer hover:stroke-blue-600 hover:opacity-90 transition-all"
                   onClick={() => onClickSubplot?.(subplot.id)}
-                  data-tooltip={tooltipText}
-                />
+                >
+                  <title>{tooltipText}</title>
+                </circle>
                 <circle
                   cx={toDisplayX(subplot.positionX + (subplot.radius || 0))}
                   cy={toDisplayY(subplot.positionY + (subplot.radius || 0))}
@@ -325,68 +328,4 @@ const VisualPlotLayout: React.FC<VisualPlotLayoutProps> = ({
   );
 };
 
-  // Add tooltip functionality when component mounts
-  useEffect(() => {
-    const showTooltip = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const tooltipText = target.getAttribute('data-tooltip');
-      
-      if (tooltipText) {
-        // Remove any existing tooltip
-        const existingTooltip = document.getElementById('visual-plot-tooltip');
-        if (existingTooltip) existingTooltip.remove();
-        
-        // Create tooltip element
-        const tooltip = document.createElement('div');
-        tooltip.id = 'visual-plot-tooltip';
-        tooltip.style.cssText = `
-          position: fixed;
-          background: rgba(0, 0, 0, 0.85);
-          color: white;
-          padding: 8px 12px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-family: sans-serif;
-          pointer-events: none;
-          z-index: 1000;
-          white-space: pre;
-          max-width: 250px;
-          word-wrap: break-word;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        `;
-        tooltip.textContent = tooltipText;
-        
-        // Position tooltip near cursor
-        tooltip.style.left = `${e.pageX + 10}px`;
-        tooltip.style.top = `${e.pageY - 10}px`;
-        
-        document.body.appendChild(tooltip);
-      }
-    };
-
-    const hideTooltip = () => {
-      const tooltip = document.getElementById('visual-plot-tooltip');
-      if (tooltip) tooltip.remove();
-    };
-
-    const container = document.querySelector(`[data-plot-number="${plot.plotNumber}"]`);
-    const elements = container ? container.querySelectorAll('[data-tooltip]') : 
-      document.querySelectorAll('[data-tooltip]');
-
-    elements.forEach(el => {
-      el.addEventListener('mouseenter', showTooltip as any);
-      el.addEventListener('mouseleave', hideTooltip);
-    });
-
-    // Clean up event listeners
-    return () => {
-      elements.forEach(el => {
-        el.removeEventListener('mouseenter', showTooltip as any);
-        el.removeEventListener('mouseleave', hideTooltip);
-      });
-      hideTooltip(); // Remove tooltip if component unmounts
-    };
-  }, [plot]);
-
-  return (
-    <div className="relative border border-gray-300 dark:border-gray-600 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-3 shadow-sm" data-plot-number={plot.plotNumber}>
+export default VisualPlotLayout;
