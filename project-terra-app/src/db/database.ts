@@ -61,6 +61,7 @@ export interface Location {
   longitude: number;
   accuracy?: number;
   altitude?: number;
+  source?: 'auto' | 'manual';
 }
 
 export interface VegetationPlot {

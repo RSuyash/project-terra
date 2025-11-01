@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAllSpecies, getPlotById, saveVegetationPlot, updateVegetationPlot } from '../db/database';
-import type { PlotMeasurement, Species, Disturbance } from '../db/database';
+import type { PlotMeasurement, Species, Disturbance, Location } from '../db/database';
 import { GPSLocation } from './GPSLocation';
 
 // Icons for buttons
@@ -46,7 +46,7 @@ export default function VegetationPlotForm() {
     fire: false,
   });
   
-  const [location, setLocation] = useState<{latitude: number; longitude: number; accuracy?: number} | null>(null);
+  const [location, setLocation] = useState<Location | null>(null);
   
   const [speciesList, setSpeciesList] = useState<Species[]>([]);
   const [measurements, setMeasurements] = useState<PlotMeasurement[]>([]);
@@ -84,7 +84,10 @@ export default function VegetationPlotForm() {
               invasives: false,
               fire: false
             });
-            setLocation(plot.location);
+            setLocation({
+              ...plot.location,
+              source: plot.location.source || 'auto' // Default to 'auto' for existing plots
+            });
             setMeasurements(plot.measurements);
           }
         }
@@ -107,7 +110,7 @@ export default function VegetationPlotForm() {
     setSpeciesList(allSpecies);
   }
   
-  function handleLocationChange(newLocation: { latitude: number; longitude: number; accuracy: number; }) {
+  function handleLocationChange(newLocation: Location) {
     setLocation(newLocation);
   }
 
@@ -157,7 +160,7 @@ export default function VegetationPlotForm() {
       habitat,
       observers: observers.split(',').map(o => o.trim()).filter(o => o),
       notes,
-      location,
+      location: location!, // Use the full Location object
       date: new Date(),
       groundCover,
       disturbance: {
