@@ -58,8 +58,8 @@ function App() {
                     <Link to="/dashboard" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 mr-6">
                         Dashboard
                     </Link>
-                    <Link to="/plots" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">
-                        Plots
+                    <Link to="/project-dashboard" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">
+                        Dashboard
                     </Link>
                 </nav>
             </div>
@@ -77,7 +77,7 @@ function App() {
                         <Card title="Dashboard" description="Overview of your ecological fieldwork data and metrics." link="/dashboard" linkText="View Dashboard" icon={<DashboardIcon />} />
                         <Card title="Research Projects" description="Group related plots and manage them together." link="/projects" linkText="Manage Projects" icon={<ProjectIcon />} />
                         <Card title="Vegetation Plotting" description="Create and manage vegetation survey plots with species, measurements, and GPS data." link="/vegetation-plot" linkText="Start New Plot" icon={<VegetationIcon />} />
-                        <Card title="View Saved Plots" description="View, edit, or delete your saved vegetation plots." link="/plots" linkText="View Plots" icon={<PlotsIcon />} />
+                        <Card title="Plot Management" description="Create, view, edit, and analyze your vegetation plots." link="/project-dashboard" linkText="Manage Plots" icon={<PlotsIcon />} />
                         <Card title="Biodiversity Analysis" description="Calculate diversity indices: Shannon-Wiener, Simpson, Richness, and more." link="/biodiversity" linkText="Analyze Data" icon={<BiodiversityIcon />} />
                         <Card title="Species-Area Curve" description="Generate and visualize species-area relationships from nested plots." link="/species-area" linkText="Create Curve" icon={<SpeciesAreaIcon />} />
                         <Card title="CSV Export" description="Export your data to CSV for analysis in spreadsheets or other tools." link="/export" linkText="Export Data" icon={<ExportIcon />} />

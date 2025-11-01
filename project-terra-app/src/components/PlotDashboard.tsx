@@ -1,158 +1,101 @@
-import { useState } from 'react';
-import SidePanel from '../SidePanel';
-import Ribbon from '../Ribbon';
-import PlotList from './PlotManagement/PlotList';
-import PlotForm from './PlotForm/PlotForm';
-import PlotVisualization from './PlotVisualization/PlotVisualization';
-import type { VegetationPlot } from '../db/database';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { getAllSpecies, getPlotById, saveVegetationPlot, updateVegetationPlot } from '../db/database';
+import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant, Subplot, SubplotShape, VegetationPlot } from '../db/database';
+import { GPSLocation } from './GPSLocation';
+import VisualPlotLayout from './VisualPlotLayout';
+import PlotForm from './PlotDashboard/PlotForm/PlotForm';
 
-const PlotDashboard = () => {
-  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
-  const [view, setView] = useState<'list' | 'form' | 'visualization'>('list');
-  const [selectedPlot, setSelectedPlot] = useState<VegetationPlot | null>(null);
-  const [editingPlot, setEditingPlot] = useState<VegetationPlot | number | null>(null);
+const PlotDashboard: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [plotId, setPlotId] = useState<number | undefined>(id ? parseInt(id, 10) : undefined);
+  const [isEditing, setIsEditing] = useState(!!id); // If there's an ID, we're editing
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  // Get project ID if this plot is being created as part of a project
+  const projectId = searchParams.get('projectId') ? parseInt(searchParams.get('projectId')!) : null;
 
-  const toggleSidePanel = () => {
-    setIsSidePanelOpen(!isSidePanelOpen);
+  useEffect(() => {
+    if (id) {
+      setPlotId(parseInt(id, 10));
+      setIsEditing(true);
+    } else {
+      setIsEditing(false);
+      // Reset to new state when no ID is in URL
+      setPlotId(undefined);
+    }
+    setIsInitialLoad(false);
+  }, [id]);
+
+  const handleSaveSuccess = () => {
+    if (projectId) {
+      // If this plot was created for a project, redirect back to the project
+      navigate(`/project/${projectId}`);
+    } else {
+      // Otherwise, redirect back to the plots list
+      navigate('/plots');
+    }
   };
 
-  const handleCreatePlot = () => {
-    setEditingPlot(null);
-    setView('form');
+  const handleCancel = () => {
+    if (projectId) {
+      // If we were creating for a project, go back to the project
+      navigate(`/project/${projectId}`);
+    } else {
+      // Otherwise, go back to plots list
+      navigate('/plots');
+    }
   };
 
-  const handleEditPlot = (plot: VegetationPlot) => {
-    setEditingPlot(plot);
-    setView('form');
-  };
-
-  const handleViewPlot = (plot: VegetationPlot) => {
-    setSelectedPlot(plot);
-    setView('visualization');
-  };
-
-  const handlePlotSave = () => {
-    setView('list');
-    setEditingPlot(null);
-  };
-
-  const handleVisualizationBack = () => {
-    setView('list');
-    setSelectedPlot(null);
-  };
-
-  const handleCancelForm = () => {
-    setView('list');
-    setEditingPlot(null);
-  };
+  // If we're still loading the initial state, show a loading indicator
+  if (isInitialLoad) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Loading...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <SidePanel isOpen={isSidePanelOpen} togglePanel={toggleSidePanel}>
-        <nav>
-          <ul className="space-y-2">
-            <li>
-              <button 
-                className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
-                  view === 'list' ? 'bg-blue-100 dark:bg-blue-900/50 font-medium' : ''
-                }`}
-                onClick={() => setView('list')}
-              >
-                Plot Overview
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
-                  view === 'form' && !editingPlot ? 'bg-blue-100 dark:bg-blue-900/50 font-medium' : ''
-                }`}
-                onClick={handleCreatePlot}
-              >
-                Create New Plot
-              </button>
-            </li>
-            <li>
-              <a href="#" className="block py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white">
-                Data Analysis
-              </a>
-            </li>
-            <li>
-              <a href="#" className="block py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white">
-                Species Tracking
-              </a>
-            </li>
-            <li>
-              <a href="#" className="block py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white">
-                Reports
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </SidePanel>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-primary-700 dark:text-primary-300">
+          {isEditing ? 'Edit Vegetation Plot' : 'Create New Vegetation Plot'}
+        </h1>
+        <button 
+          className="btn-secondary flex items-center"
+          onClick={handleCancel}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+          </svg>
+          Back to List
+        </button>
+      </div>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-auto p-6">
-          <Ribbon title="Plot Tools">
-            <button 
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              onClick={handleCreatePlot}
-            >
-              New Plot
-            </button>
-            <button className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
-              Import Data
-            </button>
-            <button className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors">
-              Export Report
-            </button>
-            <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors">
-              Analysis
-            </button>
-            <button className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
-              Settings
-            </button>
-          </Ribbon>
+      {error && (
+        <div className="p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded text-red-700 dark:text-red-300">
+          {error}
+        </div>
+      )}
 
-          <div className="mt-6">
-            {view === 'list' && (
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Plot Dashboard</h1>
-                <PlotList 
-                  onPlotSelect={handleViewPlot} 
-                  onPlotEdit={handleEditPlot}
-                  selectedPlotId={selectedPlot?.id} 
-                />
-              </div>
-            )}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <PlotForm 
+          plot={plotId ? undefined : undefined} // We'll load the plot inside the PlotForm if editing
+          onSave={handleSaveSuccess}
+          onCancel={handleCancel}
+        />
+      </div>
 
-            {view === 'form' && (
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-                  {editingPlot ? 'Edit Plot' : 'Create New Plot'}
-                </h1>
-                <PlotForm 
-                  plot={editingPlot as VegetationPlot} 
-                  onSave={handlePlotSave} 
-                  onCancel={handleCancelForm} 
-                />
-              </div>
-            )}
-
-            {view === 'visualization' && selectedPlot && (
-              <div>
-                <div className="mb-4">
-                  <button
-                    className="text-blue-600 dark:text-blue-400 hover:underline"
-                    onClick={handleVisualizationBack}
-                  >
-                    &larr; Back to Plots
-                  </button>
-                </div>
-                <PlotVisualization plot={selectedPlot} />
-              </div>
-            )}
-          </div>
-        </main>
+      <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-6">
+        <p>Project Terra - Comprehensive Vegetation Plot Management</p>
       </div>
     </div>
   );

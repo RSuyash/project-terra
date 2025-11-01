@@ -632,12 +632,12 @@ export default function Projects() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
               </svg>
             </div>
-            <span className="font-semibold text-center">Vegetation Plotting</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">Create and manage vegetation survey plots</span>
+            <span className="font-semibold text-center">Create New Plot</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">Start a new vegetation survey</span>
           </Link>
           
           <Link 
-            to="/plots" 
+            to="/project-dashboard" 
             className="flex flex-col items-center justify-center p-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
           >
             <div className="bg-primary-100 dark:bg-primary-900/50 p-3 rounded-full mb-3">
@@ -645,8 +645,8 @@ export default function Projects() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
             </div>
-            <span className="font-semibold text-center">View Saved Plots</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">View, edit, or delete your saved vegetation plots</span>
+            <span className="font-semibold text-center">Plot Dashboard</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">Create, manage, and analyze plots</span>
           </Link>
           
           <Link 

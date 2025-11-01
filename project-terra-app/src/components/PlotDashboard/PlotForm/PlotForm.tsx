@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { VegetationPlot, PlotDimensions, Location, QuadrantData, Subplot, PlotMeasurement } from '../../../db/database';
 import { saveVegetationPlot, getPlotById } from '../../../db/database';
 import { GPSLocation } from '../../GPSLocation';
+import VisualPlotLayout from '../../VisualPlotLayout';
 import PlotDimensionsForm from './PlotDimensionsForm';
 import GroundCoverForm from './GroundCoverForm';
 import DisturbanceForm from './DisturbanceForm';
@@ -253,6 +254,34 @@ const PlotForm: React.FC<PlotFormProps> = ({ plot, onSave, onCancel }) => {
             <GPSLocation onLocationChange={handleLocationChange} initialLocation={location || undefined} />
             
             <PlotDimensionsForm dimensions={dimensions} onDimensionsChange={setDimensions} />
+            
+            {/* Visual Plot Layout */}
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">Plot Layout Visualization</h3>
+              <div className="flex justify-center">
+                <VisualPlotLayout 
+                  plot={{
+                    id: plot?.id,
+                    plotNumber: plotNumber || 'Preview',
+                    location: location || { latitude: 0, longitude: 0, accuracy: 0, source: 'manual' },
+                    dimensions,
+                    date: plot?.date || new Date(),
+                    observers: observers.split(',').map(o => o.trim()).filter(o => o),
+                    habitat,
+                    notes,
+                    groundCover,
+                    disturbance,
+                    measurements: measurements || [],
+                    quadrants: quadrants || [],
+                    subplots: subplots || [],
+                    createdAt: plot?.createdAt || new Date(),
+                    updatedAt: new Date(),
+                  } as VegetationPlot}
+                  width={300}
+                  height={300}
+                />
+              </div>
+            </div>
             
             <GroundCoverForm groundCover={groundCover} onGroundCoverChange={setGroundCover} />
             
