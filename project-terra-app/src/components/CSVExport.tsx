@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getAllPlots, getAllSpecies } from '../db/database';
 import type { VegetationPlot, Species } from '../db/database';
 import Papa from 'papaparse';
 
 interface ExportOptions {
   includeMeasurements: boolean;
-  includeBiodiversity: boolean;
+  includeBiodiversity: boolean; // This would require calculating indices
   includeLocation: boolean;
   includeDisturbance: boolean;
   includeGroundCover: boolean;

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAllSpecies, getPlotById, saveVegetationPlot, updateVegetationPlot } from '../db/database';
-import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant, Subplot, SubplotShape } from '../db/database';
+import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant, Subplot, SubplotShape, VegetationPlot } from '../db/database';
 import { GPSLocation } from './GPSLocation';
+import VisualPlotLayout from './VisualPlotLayout';
 
 // Icons for buttons
 const SaveIcon = () => (
@@ -566,6 +567,32 @@ export default function VegetationPlotForm() {
               <div className="text-lg font-bold">{dimensions.area} m²</div>
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* Visual Plot Layout */}
+      <div className="card">
+        <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Plot Layout Visualization</h3>
+        <div className="flex justify-center">
+          <VisualPlotLayout 
+            plot={{
+              id: plotId ?? undefined,
+              plotNumber,
+              location: location || { latitude: 0, longitude: 0, accuracy: 0, source: 'manual' },
+              dimensions,
+              date: new Date(),
+              observers: observers.split(',').map(o => o.trim()).filter(o => o),
+              habitat,
+              notes,
+              groundCover,
+              disturbance,
+              measurements,
+              quadrants,
+              subplots,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            } as VegetationPlot}
+          />
         </div>
       </div>
       

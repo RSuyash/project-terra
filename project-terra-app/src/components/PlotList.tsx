@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllPlots } from '../db/database';
 import type { VegetationPlot } from '../db/database';
+import VisualPlotLayout from './VisualPlotLayout';
 
 // A simple icon component for demonstration purposes
 const EditIcon = () => (
@@ -111,6 +112,16 @@ export function PlotList() {
                     ))}
                   </div>
                 )}
+                {/* Visual plot layout preview */}
+                <div className="mt-3">
+                  <VisualPlotLayout 
+                    plot={plot} 
+                    width={150} 
+                    height={150} 
+                    showQuadrants={plot.quadrants && plot.quadrants.length > 0}
+                    showSubplots={plot.subplots && plot.subplots.length > 0}
+                  />
+                </div>
               </div>
               <div className="mt-6 flex justify-between items-center">
                 <span className="text-xs text-gray-400 dark:text-gray-500">
