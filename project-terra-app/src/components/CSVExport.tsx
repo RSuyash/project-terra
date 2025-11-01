@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+
 import { getAllPlots, getAllSpecies } from '../db/database';
 import type { VegetationPlot, Species } from '../db/database';
 import Papa from 'papaparse';

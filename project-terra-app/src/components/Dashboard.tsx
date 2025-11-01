@@ -18,7 +18,7 @@ const Dashboard = () => {
         ]);
         
         setPlots(plotData);
-        setSpecies(specData);
+        setSpecies(speciesData);
         setProjects(projectData);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);

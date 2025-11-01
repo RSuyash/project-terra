@@ -3,9 +3,10 @@ import VisualPlotLayout from '../../VisualPlotLayout';
 
 interface PlotVisualizationProps {
   plot: VegetationPlot;
+  onCanopyAnalysis?: (plot: VegetationPlot) => void;
 }
 
-const PlotVisualization: React.FC<PlotVisualizationProps> = ({ plot }) => {
+const PlotVisualization: React.FC<PlotVisualizationProps> = ({ plot, onCanopyAnalysis }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <div className="flex justify-between items-start mb-6">
@@ -26,12 +27,22 @@ const PlotVisualization: React.FC<PlotVisualizationProps> = ({ plot }) => {
             </span>
           </div>
         </div>
-        <div className="text-right">
-          <div className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-full text-sm">
-            {plot.subplots?.length || 0} Subplots
-          </div>
-          <div className="inline-block ml-2 px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded-full text-sm">
-            {plot.quadrants?.length || 0} Quadrants
+        <div className="flex space-x-2">
+          {onCanopyAnalysis && (
+            <button
+              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+              onClick={() => onCanopyAnalysis(plot)}
+            >
+              Canopy Analysis
+            </button>
+          )}
+          <div className="text-right">
+            <div className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-full text-sm">
+              {plot.subplots?.length || 0} Subplots
+            </div>
+            <div className="inline-block ml-2 px-3 py-1 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 rounded-full text-sm">
+              {plot.quadrants?.length || 0} Quadrants
+            </div>
           </div>
         </div>
       </div>

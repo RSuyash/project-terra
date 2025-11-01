@@ -137,7 +137,7 @@ export default function CanopyAnalysis() {
   };
 
   // Function to calculate canopy coverage percentage (simplified algorithm)
-  const calculateCanopyCoverage = (_: string): number => {
+  const calculateCanopyCoverage = (): number => {
     // This is a simplified algorithm - in reality, you'd analyze the image pixels
     // to determine what percentage is canopy vs sky
     

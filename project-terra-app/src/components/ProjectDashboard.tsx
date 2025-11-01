@@ -8,15 +8,17 @@ import PlotListInProject from './ProjectDashboard/PlotListInProject';
 import PlotList from './PlotDashboard/PlotManagement/PlotList';
 import PlotForm from './PlotDashboard/PlotForm/PlotForm';
 import PlotVisualization from './PlotDashboard/PlotVisualization/PlotVisualization';
+import CanopyAnalysisPlot from './ProjectDashboard/CanopyAnalysisPlot';
 import type { Project, VegetationPlot } from '../db/database';
 
 const ProjectDashboard = () => {
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
-  const [view, setView] = useState<'list' | 'form' | 'detail' | 'plot-list' | 'plot-form' | 'plot-visualization'>('list');
+  const [view, setView] = useState<'list' | 'form' | 'detail' | 'plot-list' | 'plot-form' | 'plot-visualization' | 'canopy-analysis'>('list');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [selectedPlot, setSelectedPlot] = useState<VegetationPlot | null>(null);
   const [editingPlot, setEditingPlot] = useState<VegetationPlot | null>(null);
+  const [analyzingPlot, setAnalyzingPlot] = useState<VegetationPlot | null>(null);
 
   const toggleSidePanel = () => {
     setIsSidePanelOpen(!isSidePanelOpen);
@@ -87,6 +89,25 @@ const ProjectDashboard = () => {
     setEditingPlot(null);
   };
 
+  const handleCanopyAnalysis = (plot: VegetationPlot) => {
+    setAnalyzingPlot(plot);
+    setView('canopy-analysis');
+  };
+
+  const handleCanopyAnalysisBack = () => {
+    setView('plot-list');
+    setAnalyzingPlot(null);
+  };
+
+  const handleCanopyAnalysisComplete = (analysisResults: any) => {
+    // In a real implementation, you would save the canopy analysis results to the plot
+    // For now, we'll just log the results and return to the plot list
+    console.log('Canopy analysis results:', analysisResults);
+    alert('Canopy analysis completed and saved!');
+    setView('plot-list');
+    setAnalyzingPlot(null);
+  };
+
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <SidePanel isOpen={isSidePanelOpen} togglePanel={toggleSidePanel}>
@@ -120,6 +141,16 @@ const ProjectDashboard = () => {
                 onClick={() => setView('plot-list')}
               >
                 Plot Management
+              </button>
+            </li>
+            <li>
+              <button 
+                className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
+                  view === 'canopy-analysis' ? 'bg-blue-100 dark:bg-blue-900/50 font-medium' : ''
+                }`}
+                onClick={() => setView('canopy-analysis')}
+              >
+                Canopy Analysis
               </button>
             </li>
             <li>
@@ -174,12 +205,27 @@ const ProjectDashboard = () => {
                 >
                   Back to Projects
                 </button>
+                <button 
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                  onClick={() => setView('canopy-analysis')}
+                >
+                  Canopy Analysis
+                </button>
               </>
             ) : view === 'plot-form' ? (
               <>
                 <button 
                   className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
                   onClick={() => setView('plot-list')}
+                >
+                  Back to Plots
+                </button>
+              </>
+            ) : view === 'canopy-analysis' && analyzingPlot ? (
+              <>
+                <button 
+                  className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                  onClick={handleCanopyAnalysisBack}
                 >
                   Back to Plots
                 </button>
@@ -244,7 +290,10 @@ const ProjectDashboard = () => {
                   onProjectDeleted={handleProjectDeleted}
                 />
                 <div className="mt-6">
-                  <PlotListInProject project={selectedProject} />
+                  <PlotListInProject 
+                    project={selectedProject} 
+                    onCanopyAnalysis={handleCanopyAnalysis}
+                  />
                 </div>
               </div>
             )}
@@ -255,6 +304,7 @@ const ProjectDashboard = () => {
                 <PlotList 
                   onPlotSelect={handleViewPlot} 
                   onPlotEdit={handleEditPlot}
+                  onCanopyAnalysis={handleCanopyAnalysis}
                   selectedPlotId={selectedPlot?.id} 
                 />
               </div>
@@ -283,7 +333,27 @@ const ProjectDashboard = () => {
                     &larr; Back to Plots
                   </button>
                 </div>
-                <PlotVisualization plot={selectedPlot} />
+                <PlotVisualization 
+                  plot={selectedPlot} 
+                  onCanopyAnalysis={handleCanopyAnalysis}
+                />
+              </div>
+            )}
+
+            {view === 'canopy-analysis' && analyzingPlot && (
+              <div>
+                <div className="mb-4">
+                  <button
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                    onClick={handleCanopyAnalysisBack}
+                  >
+                    &larr; Back to Plots
+                  </button>
+                </div>
+                <CanopyAnalysisPlot 
+                  plot={analyzingPlot}
+                  onAnalysisComplete={handleCanopyAnalysisComplete}
+                />
               </div>
             )}
           </div>

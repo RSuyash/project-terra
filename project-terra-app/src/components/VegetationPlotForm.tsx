@@ -141,35 +141,9 @@ export default function VegetationPlotForm() {
     setLocation(newLocation);
   }
 
-  function addMeasurement() {
-    if (!currentSpeciesId) {
-      alert('Please select a species');
-      return;
-    }
-    
-    const measurement: PlotMeasurement = {
-      speciesId: currentSpeciesId,
-      gbh: currentMeasurement.gbh ? parseFloat(currentMeasurement.gbh) : undefined,
-      dbh: currentMeasurement.dbh ? parseFloat(currentMeasurement.dbh) : undefined,
-      height: currentMeasurement.height ? parseFloat(currentMeasurement.height) : undefined,
-      heightAtFirstBranch: currentMeasurement.heightAtFirstBranch ? parseFloat(currentMeasurement.heightAtFirstBranch) : undefined,
-      canopyCover: currentMeasurement.canopyCover ? parseFloat(currentMeasurement.canopyCover) : undefined,
-    };
-    
-    setMeasurements([...measurements, measurement]);
-    setCurrentMeasurement({
-      gbh: '',
-      dbh: '',
-      height: '',
-      heightAtFirstBranch: '',
-      canopyCover: '',
-    });
-    setCurrentSpeciesId(null);
-  }
+
   
-  function removeMeasurement(index: number) {
-    setMeasurements(measurements.filter((_, i) => i !== index));
-  }
+
   
   // Quadrant functions
   function addQuadrantMeasurement() {
@@ -597,7 +571,11 @@ export default function VegetationPlotForm() {
         </div>
       </div>
       
-      <GPSLocation onLocationChange={handleLocationChange} />
+      {/* GPS Location */}
+      <div className="card">
+        <h3 className="text-xl font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">GPS Location</h3>
+        <GPSLocation onLocationChange={handleLocationChange} />
+      </div>
       
       {/* Ground Cover */}
       <div className="card">
@@ -1250,7 +1228,7 @@ export default function VegetationPlotForm() {
         {quadrants.length > 0 && (
           <div className="mt-6 space-y-4">
             <h4 className="font-bold">Quadrant-Specific Measurements</h4>
-            {quadrants.map((quad, quadIndex) => (
+            {quadrants.map((quad) => (
               <div key={quad.quadrant} className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-800/30">
                 <h5 className="font-semibold mb-2">{quad.quadrant} Quadrant ({quad.measurements.length} measurements)</h5>
                 <div className="space-y-2">

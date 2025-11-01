@@ -5,10 +5,11 @@ import { getAllPlots } from '../../../db/database';
 interface PlotListProps {
   onPlotSelect: (plot: VegetationPlot) => void;
   onPlotEdit: (plot: VegetationPlot) => void;
+  onCanopyAnalysis?: (plot: VegetationPlot) => void;
   selectedPlotId?: number;
 }
 
-const PlotList: React.FC<PlotListProps> = ({ onPlotSelect, onPlotEdit, selectedPlotId }) => {
+const PlotList: React.FC<PlotListProps> = ({ onPlotSelect, onPlotEdit, onCanopyAnalysis, selectedPlotId }) => {
   const [plots, setPlots] = useState<VegetationPlot[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -107,6 +108,14 @@ const PlotList: React.FC<PlotListProps> = ({ onPlotSelect, onPlotEdit, selectedP
                   >
                     View
                   </button>
+                  {onCanopyAnalysis ? (
+                    <button
+                      className="text-sm px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                      onClick={() => onCanopyAnalysis(plot)}
+                    >
+                      Canopy
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>

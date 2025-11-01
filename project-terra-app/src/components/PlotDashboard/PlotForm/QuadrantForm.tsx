@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { QuadrantData, Quadrant, GroundCover, Disturbance, PlotMeasurement } from '../../../db/database';
+import type { QuadrantData, Quadrant, GroundCover, Disturbance } from '../../../db/database';
 
 interface QuadrantFormProps {
   quadrants: QuadrantData[];

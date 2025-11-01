@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 
 interface PlotListInProjectProps {
   project: Project;
+  onCanopyAnalysis?: (plot: any) => void;
 }
 
-const PlotListInProject: React.FC<PlotListInProjectProps> = ({ project }) => {
+const PlotListInProject: React.FC<PlotListInProjectProps> = ({ project, onCanopyAnalysis }) => {
   const [plots, setPlots] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +69,9 @@ const PlotListInProject: React.FC<PlotListInProjectProps> = ({ project }) => {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dimensions</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Subplots</th>
+                {onCanopyAnalysis && (
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Canopy</th>
+                )}
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -86,6 +90,16 @@ const PlotListInProject: React.FC<PlotListInProjectProps> = ({ project }) => {
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {plot.subplots?.length || 0}
                   </td>
+                  {onCanopyAnalysis && (
+                    <td className="px-4 py-3 whitespace-nowrap text-sm">
+                      <button
+                        className="text-green-600 dark:text-green-400 hover:underline"
+                        onClick={() => onCanopyAnalysis(plot)}
+                      >
+                        Analyze
+                      </button>
+                    </td>
+                  )}
                   <td className="px-4 py-3 whitespace-nowrap text-sm">
                     <a 
                       href={`/plot/${plot.id}/edit`} 

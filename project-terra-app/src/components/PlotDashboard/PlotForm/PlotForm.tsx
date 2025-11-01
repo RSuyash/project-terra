@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { VegetationPlot, PlotDimensions, Location, QuadrantData, Subplot, PlotMeasurement } from '../../../db/database';
 import { saveVegetationPlot, getPlotById } from '../../../db/database';
 import { GPSLocation } from '../../GPSLocation';
@@ -56,14 +56,7 @@ const PlotForm: React.FC<PlotFormProps> = ({ plot, onSave, onCancel }) => {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    if (plot && plot.id) {
-      // Load the full plot data when editing
-      loadPlotData();
-    }
-  }, [plot?.id]);
-
-  const loadPlotData = async () => {
+  const loadPlotData = useCallback(async () => {
     if (!plot?.id) return;
     
     try {
@@ -87,7 +80,14 @@ const PlotForm: React.FC<PlotFormProps> = ({ plot, onSave, onCancel }) => {
       console.error('Failed to load plot:', err);
       setError(err instanceof Error ? err.message : 'Failed to load plot data');
     }
-  };
+  }, [plot?.id, setPlotNumber, setHabitat, setObservers, setNotes, setSlope, setAspect, setLocation, setDimensions, setGroundCover, setDisturbance, setQuadrants, setSubplots, setMeasurements, setError]);
+
+  useEffect(() => {
+    if (plot && plot.id) {
+      // Load the full plot data when editing
+      loadPlotData();
+    }
+  }, [plot, loadPlotData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,8 +135,7 @@ const PlotForm: React.FC<PlotFormProps> = ({ plot, onSave, onCancel }) => {
         } as VegetationPlot;
         
         // In a real implementation, you would use an update function
-        // For now, we'll just save a new one with the same ID
-        await saveVegetationPlot(plotData);
+        await updateVegetationPlot(updatedPlot);
       } else {
         // Create new plot
         await saveVegetationPlot(plotData);

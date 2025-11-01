@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { getAllSpecies, getPlotById, saveVegetationPlot, updateVegetationPlot } from '../db/database';
-import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant, Subplot, SubplotShape, VegetationPlot } from '../db/database';
-import { GPSLocation } from './GPSLocation';
-import VisualPlotLayout from './VisualPlotLayout';
+
 import PlotForm from './PlotDashboard/PlotForm/PlotForm';
 
 const PlotDashboard: React.FC = () => {
@@ -11,9 +8,8 @@ const PlotDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [plotId, setPlotId] = useState<number | undefined>(id ? parseInt(id, 10) : undefined);
-  const [isEditing, setIsEditing] = useState(!!id); // If there's an ID, we're editing
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(!!id); // If there\'s an ID, we\'re editing
+  const [error] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   // Get project ID if this plot is being created as part of a project

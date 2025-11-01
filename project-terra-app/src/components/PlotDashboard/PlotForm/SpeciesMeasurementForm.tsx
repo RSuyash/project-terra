@@ -261,7 +261,7 @@ const SpeciesMeasurementForm: React.FC<SpeciesMeasurementFormProps> = ({
       {quadrants.length > 0 && (
         <div className="mt-6 space-y-4">
           <h4 className="font-semibold text-gray-800 dark:text-white">Quadrant-Specific Measurements</h4>
-          {quadrants.map((quad, quadIndex) => (
+          {quadrants.map((quad) => (
             <div key={quad.quadrant} className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-700/50">
               <h5 className="font-medium text-gray-800 dark:text-white mb-2">{quad.quadrant} Quadrant ({quad.measurements.length} measurements)</h5>
               <div className="space-y-2">
