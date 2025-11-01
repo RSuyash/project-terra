@@ -485,7 +485,9 @@ export default function Projects() {
             return (
               <div key={project.id} className="card flex flex-col h-full">
                 <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-xl font-bold truncate">{project.name}</h3>
+                  <Link to={`/project/${project.id}`} className="hover:underline">
+                    <h3 className="text-xl font-bold truncate">{project.name}</h3>
+                  </Link>
                   <span className="text-xs bg-primary-100 dark:bg-primary-900/50 text-primary-800 dark:text-primary-200 px-2 py-1 rounded">
                     {project.plotIds.length} plots
                   </span>

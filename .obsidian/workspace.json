@@ -171,6 +171,7 @@
   },
   "active": "836481b50dc41590",
   "lastOpenFiles": [
+    "project-terra-app/src/components/ProjectDetail.tsx",
     "project-terra-app/src/components/Projects.tsx",
     "project-terra-app/src/components/CanopyAnalysis.tsx",
     "project-terra-app/node_modules/@types/papaparse/LICENSE",
@@ -182,7 +183,6 @@
     "project-terra-app/node_modules/@esbuild/darwin-x64",
     "project-terra-app/node_modules/@esbuild/freebsd-arm64",
     "project-terra-app/node_modules/@esbuild/darwin-arm64",
-    "project-terra-app/node_modules/@esbuild/android-x64",
     "project-terra-app/node_modules/tailwindcss/CHANGELOG.md",
     "project-terra-app/node_modules/tailwindcss/lib/postcss-plugins/nesting/README.md",
     "project-terra-app/node_modules/tailwindcss/lib/value-parser/README.md",

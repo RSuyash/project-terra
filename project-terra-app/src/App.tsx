@@ -6,6 +6,7 @@ import SpeciesAreaCurve from './components/SpeciesAreaCurve';
 import CSVExport from './components/CSVExport';
 import CanopyAnalysis from './components/CanopyAnalysis';
 import Projects from './components/Projects';
+import ProjectDetail from './components/ProjectDetail';
 
 interface CardProps {
   title: string;
@@ -79,6 +80,7 @@ function App() {
                 <Route path="/export" element={<CSVExport />} />
                 <Route path="/canopy" element={<CanopyAnalysis />} />
                 <Route path="/projects" element={<Projects />} />
+                <Route path="/project/:id" element={<ProjectDetail />} />
             </Routes>
         </main>
 
