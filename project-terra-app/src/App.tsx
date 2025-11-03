@@ -11,6 +11,7 @@ import Projects from './components/projects/Projects';
 import ProjectDetail from './components/projects/ProjectDetail';
 import Dashboard from './components/dashboard/Dashboard';
 import ProjectDashboard from './components/projects/ProjectDashboard';
+import Navigation from './components/layout/Navigation';
 
 interface CardProps {
   title: string;
@@ -21,17 +22,24 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({ title, description, link, linkText, icon }) => (
-    <div className="card transform hover:scale-105 transition-transform duration-300 ease-in-out flex flex-col">
-        <div className="flex items-center mb-4">
-            <div className="bg-primary-100 dark:bg-primary-900/50 p-3 rounded-full mr-4 flex-shrink-0">
-                {icon}
+    <div className="card transform hover:scale-105 transition-transform duration-300 ease-in-out flex flex-col bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div className="p-6 flex-grow">
+            <div className="flex items-center mb-4">
+                <div className="bg-primary-100 dark:bg-primary-900/50 p-3 rounded-full mr-4 flex-shrink-0">
+                    {icon}
+                </div>
+                <h2 className="text-2xl font-bold text-primary-700 dark:text-primary-300">{title}</h2>
             </div>
-            <h2 className="text-2xl font-bold text-primary-700 dark:text-primary-300">{title}</h2>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">{description}</p>
         </div>
-        <p className="text-gray-700 dark:text-gray-300 mb-6 flex-grow">{description}</p>
-        <Link to={link} className="btn-primary w-full flex items-center justify-center">
-            {linkText}
-        </Link>
+        <div className="px-6 pb-6">
+            <Link 
+                to={link} 
+                className="btn-primary w-full flex items-center justify-center py-3 px-4 text-center font-semibold rounded-lg transition-all duration-200 transform hover:scale-105"
+            >
+                {linkText}
+            </Link>
+        </div>
     </div>
 );
 
@@ -50,31 +58,24 @@ function App() {
       <ErrorBoundary>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
           <div className="container mx-auto px-4 py-12">
-            <header className="text-center mb-12">
-                <div className="flex justify-between items-center mb-8">
+            <header className="text-center mb-8">
+                <div className="flex justify-between items-center mb-6">
                     <Link to="/" className="text-3xl font-extrabold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200">
                         Project Terra 🌱
                     </Link>
-                    <nav>
-                        <Link to="/dashboard" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 mr-6">
-                            Dashboard
-                        </Link>
-                        <Link to="/projects" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">
-                            Projects
-                        </Link>
-                    </nav>
                 </div>
+                <Navigation />
             </header>
             
             <main>
                 <Routes>
                     <Route path="/" element={
                       <>
-                        <div className="text-center mb-16">
-                            <h1 className="text-6xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">Project Terra</h1>
-                            <p className="text-2xl text-gray-600 dark:text-gray-400 font-light">Your all-in-one environmental science field data toolkit.</p>
+                        <div className="text-center mb-12">
+                            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">Project Terra</h1>
+                            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 font-light max-w-3xl mx-auto">Your all-in-one environmental science field data toolkit.</p>
                         </div>
-                        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <Card title="Dashboard" description="Overview of your ecological fieldwork data and metrics." link="/dashboard" linkText="View Dashboard" icon={<DashboardIcon />} />
                             <Card title="Research Projects" description="Group related plots and manage them together." link="/projects" linkText="Manage Projects" icon={<ProjectIcon />} />
                             <Card title="Vegetation Plotting" description="Create and manage vegetation survey plots with species, measurements, and GPS data." link="/vegetation-plot" linkText="Start New Plot" icon={<VegetationIcon />} />

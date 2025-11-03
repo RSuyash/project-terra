@@ -18,19 +18,25 @@
 @layer components {
   .btn-primary {
     @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg;
-    @apply transition-colors duration-200;
+    @apply transition-all duration-200 ease-in-out;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply shadow-md hover:shadow-lg;
+    @apply transform hover:-translate-y-0.5;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 font-semibold py-3 px-6 rounded-lg;
-    @apply transition-colors duration-200;
+    @apply bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-semibold py-3 px-6 rounded-lg;
+    @apply transition-all duration-200 ease-in-out;
     @apply focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+    @apply shadow-md hover:shadow-lg;
+    @apply transform hover:-translate-y-0.5;
   }
   
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6;
     @apply border border-gray-200 dark:border-gray-700;
+    @apply transition-all duration-300 ease-in-out;
+    @apply hover:shadow-xl;
   }
   
   .input-field {
@@ -39,12 +45,15 @@
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
     @apply placeholder-gray-400 dark:placeholder-gray-500;
     @apply text-base; /* Larger for mobile touch targets */
+    @apply transition-colors duration-200;
   }
 }
 
 /* Dark mode toggle */
 .dark-mode-toggle {
   @apply fixed top-4 right-4 p-3 rounded-full;
-  @apply bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600;
+  @apply bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700;
   @apply transition-colors duration-200 cursor-pointer;
+  @apply shadow-lg z-50;
+  @apply border border-gray-200 dark:border-gray-700;
 }
