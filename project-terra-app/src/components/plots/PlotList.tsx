@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllPlots } from '../db/database';
-import type { VegetationPlot } from '../db/database';
+import { getAllPlots } from '../../db/database';
+import type { VegetationPlot } from '../../db/database';
 import VisualPlotLayout from './VisualPlotLayout';
 
 // A simple icon component for demonstration purposes

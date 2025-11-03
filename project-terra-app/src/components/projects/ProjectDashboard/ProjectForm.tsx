@@ -1,41 +1,41 @@
-// components/PlotDashboard/PlotForm/PlotForm.tsx
+// components/projects/ProjectDashboard/ProjectForm.tsx
 import React from 'react';
 
-interface PlotFormProps {
-  plot?: any;
+interface ProjectFormProps {
+  project?: any;
   onSave: () => void;
   onCancel: () => void;
 }
 
-const PlotForm: React.FC<PlotFormProps> = ({ plot, onSave, onCancel }) => {
+const ProjectForm: React.FC<ProjectFormProps> = ({ project, onSave, onCancel }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-        {plot ? 'Edit Plot' : 'Create New Plot'}
+        {project ? 'Edit Project' : 'Create New Project'}
       </h2>
       <p className="text-gray-600 dark:text-gray-300 mb-6">
-        {plot 
-          ? 'Update the plot details below.' 
-          : 'Enter the new plot details below.'}
+        {project 
+          ? 'Update the project details below.' 
+          : 'Enter the new project details below.'}
       </p>
       
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Plot Number</label>
+          <label className="block text-sm font-medium mb-1">Project Name</label>
           <input
             type="text"
             className="input-field"
-            placeholder="e.g., PLOT-001"
+            placeholder="Enter project name"
           />
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1">Habitat</label>
-          <input
-            type="text"
+          <label className="block text-sm font-medium mb-1">Description</label>
+          <textarea
             className="input-field"
-            placeholder="e.g., Tropical forest"
-          />
+            rows={3}
+            placeholder="Enter project description"
+          ></textarea>
         </div>
       </div>
       
@@ -44,7 +44,7 @@ const PlotForm: React.FC<PlotFormProps> = ({ plot, onSave, onCancel }) => {
           className="btn-primary flex-1"
           onClick={onSave}
         >
-          Save Plot
+          Save Project
         </button>
         <button 
           className="btn-secondary flex-1"
@@ -57,4 +57,4 @@ const PlotForm: React.FC<PlotFormProps> = ({ plot, onSave, onCancel }) => {
   );
 };
 
-export default PlotForm;
+export default ProjectForm;

@@ -1,14 +1,16 @@
-import { Routes, Route, Link } from 'react-router-dom';
-import VegetationPlotForm from './components/VegetationPlotForm';
-import { PlotList } from './components/PlotList';
-import BiodiversityAnalysis from './components/BiodiversityAnalysis';
-import SpeciesAreaCurve from './components/SpeciesAreaCurve';
-import CSVExport from './components/CSVExport';
-import CanopyAnalysis from './components/CanopyAnalysis';
-import Projects from './components/Projects';
-import ProjectDetail from './components/ProjectDetail';
-import Dashboard from './components/Dashboard';
-import ProjectDashboard from './components/ProjectDashboard';
+import { Routes, Route, Link, Navigate } from 'react-router-dom';
+import { AppProvider } from './contexts/AppContext';
+import ErrorBoundary from './components/error/ErrorBoundary';
+import VegetationPlotForm from './components/plots/VegetationPlotForm';
+import { PlotList } from './components/plots/PlotList';
+import BiodiversityAnalysis from './components/analysis/BiodiversityAnalysis';
+import SpeciesAreaCurve from './components/analysis/SpeciesAreaCurve';
+import CSVExport from './components/analysis/CSVExport';
+import CanopyAnalysis from './components/CanopyAnalysisModule/CanopyAnalysis';
+import Projects from './components/projects/Projects';
+import ProjectDetail from './components/projects/ProjectDetail';
+import Dashboard from './components/dashboard/Dashboard';
+import ProjectDashboard from './components/projects/ProjectDashboard';
 
 interface CardProps {
   title: string;
@@ -42,67 +44,69 @@ const ProjectIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5
 const DashboardIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>;
 
 
-
-
-
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <div className="container mx-auto px-4 py-12">
-        <header className="text-center mb-12">
-            <div className="flex justify-between items-center mb-8">
-                <Link to="/" className="text-3xl font-extrabold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200">
-                    Project Terra 🌱
-                </Link>
-                <nav>
-                    <Link to="/dashboard" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 mr-6">
-                        Dashboard
+    <AppProvider>
+      <ErrorBoundary>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+          <div className="container mx-auto px-4 py-12">
+            <header className="text-center mb-12">
+                <div className="flex justify-between items-center mb-8">
+                    <Link to="/" className="text-3xl font-extrabold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200">
+                        Project Terra 🌱
                     </Link>
-                    <Link to="/project-dashboard" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">
-                        Dashboard
-                    </Link>
-                </nav>
-            </div>
-        </header>
-        
-        <main>
-            <Routes>
-                <Route path="/" element={
-                  <>
-                    <div className="text-center mb-16">
-                        <h1 className="text-6xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">Project Terra</h1>
-                        <p className="text-2xl text-gray-600 dark:text-gray-400 font-light">Your all-in-one environmental science field data toolkit.</p>
-                    </div>
-                    <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <Card title="Dashboard" description="Overview of your ecological fieldwork data and metrics." link="/dashboard" linkText="View Dashboard" icon={<DashboardIcon />} />
-                        <Card title="Research Projects" description="Group related plots and manage them together." link="/projects" linkText="Manage Projects" icon={<ProjectIcon />} />
-                        <Card title="Vegetation Plotting" description="Create and manage vegetation survey plots with species, measurements, and GPS data." link="/vegetation-plot" linkText="Start New Plot" icon={<VegetationIcon />} />
-                        <Card title="Plot Management" description="Create, view, edit, and analyze your vegetation plots." link="/project-dashboard" linkText="Manage Plots" icon={<PlotsIcon />} />
-                        <Card title="Biodiversity Analysis" description="Calculate diversity indices: Shannon-Wiener, Simpson, Richness, and more." link="/biodiversity" linkText="Analyze Data" icon={<BiodiversityIcon />} />
-                        <Card title="Species-Area Curve" description="Generate and visualize species-area relationships from nested plots." link="/species-area" linkText="Create Curve" icon={<SpeciesAreaIcon />} />
-                        <Card title="CSV Export" description="Export your data to CSV for analysis in spreadsheets or other tools." link="/export" linkText="Export Data" icon={<ExportIcon />} />
-                    </div>
-                  </>
-                } />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/project-dashboard" element={<ProjectDashboard />} />
-                <Route path="/vegetation-plot" element={<VegetationPlotForm />} />
-                <Route path="/plots" element={<PlotList />} />
-                <Route path="/plot/:id/edit" element={<VegetationPlotForm />} />
-                <Route path="/biodiversity" element={<BiodiversityAnalysis />} />
-                <Route path="/species-area" element={<SpeciesAreaCurve />} />
-                <Route path="/export" element={<CSVExport />} />
-                <Route path="/canopy" element={<CanopyAnalysis />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/project/:id" element={<ProjectDetail />} />
-            </Routes>
-        </main>
+                    <nav>
+                        <Link to="/dashboard" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 mr-6">
+                            Dashboard
+                        </Link>
+                        <Link to="/projects" className="text-lg text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">
+                            Projects
+                        </Link>
+                    </nav>
+                </div>
+            </header>
+            
+            <main>
+                <Routes>
+                    <Route path="/" element={
+                      <>
+                        <div className="text-center mb-16">
+                            <h1 className="text-6xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight">Project Terra</h1>
+                            <p className="text-2xl text-gray-600 dark:text-gray-400 font-light">Your all-in-one environmental science field data toolkit.</p>
+                        </div>
+                        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <Card title="Dashboard" description="Overview of your ecological fieldwork data and metrics." link="/dashboard" linkText="View Dashboard" icon={<DashboardIcon />} />
+                            <Card title="Research Projects" description="Group related plots and manage them together." link="/projects" linkText="Manage Projects" icon={<ProjectIcon />} />
+                            <Card title="Vegetation Plotting" description="Create and manage vegetation survey plots with species, measurements, and GPS data." link="/vegetation-plot" linkText="Start New Plot" icon={<VegetationIcon />} />
+                            <Card title="Plot Management" description="Create, view, edit, and analyze your vegetation plots." link="/plots" linkText="Manage Plots" icon={<PlotsIcon />} />
+                            <Card title="Biodiversity Analysis" description="Calculate diversity indices: Shannon-Wiener, Simpson, Richness, and more." link="/biodiversity" linkText="Analyze Data" icon={<BiodiversityIcon />} />
+                            <Card title="Species-Area Curve" description="Generate and visualize species-area relationships from nested plots." link="/species-area" linkText="Create Curve" icon={<SpeciesAreaIcon />} />
+                            <Card title="CSV Export" description="Export your data to CSV for analysis in spreadsheets or other tools." link="/export" linkText="Export Data" icon={<ExportIcon />} />
+                        </div>
+                      </>
+                    } />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/project-dashboard" element={<ProjectDashboard />} />
+                    <Route path="/vegetation-plot" element={<VegetationPlotForm />} />
+                    <Route path="/plots" element={<PlotList />} />
+                    <Route path="/plot/:id/edit" element={<VegetationPlotForm />} />
+                    <Route path="/biodiversity" element={<BiodiversityAnalysis />} />
+                    <Route path="/species-area" element={<SpeciesAreaCurve />} />
+                    <Route path="/export" element={<CSVExport />} />
+                    <Route path="/canopy" element={<CanopyAnalysis />} />
+                    <Route path="/projects" element={<Projects />} />
+                    <Route path="/project/:id" element={<ProjectDetail />} />
+                    <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+            </main>
 
-        <footer className="mt-20 text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>&copy; {new Date().getFullYear()} Project Terra. Built for the field, by the field.</p>
-        </footer>
-      </div>
-    </div>
+            <footer className="mt-20 text-center text-sm text-gray-500 dark:text-gray-400">
+                <p>&copy; {new Date().getFullYear()} Project Terra. Built for the field, by the field.</p>
+            </footer>
+          </div>
+        </div>
+      </ErrorBoundary>
+    </AppProvider>
   );
 }
 

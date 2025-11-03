@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getAllPlots } from '../db/database';
-import type { VegetationPlot } from '../db/database';
+import { getAllPlots } from '../../db/database';
+import type { VegetationPlot } from '../../db/database';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Scatter, ScatterChart } from 'recharts';
 
 interface PlotWithSpeciesCount extends Omit<VegetationPlot, 'measurements'> {

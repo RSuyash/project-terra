@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getAllPlots, getProjectById, updateProject } from '../db/database';
-import type { VegetationPlot, Project } from '../db/database';
-import { calculateAllIndices } from '../utils/biodiversity';
-import type { BiodiversityIndices } from '../utils/biodiversity';
+import { getAllPlots, getProjectById, updateProject } from '../../db/database';
+import type { VegetationPlot, Project } from '../../db/database';
+import { calculateAllIndices } from '../../utils/biodiversity';
+import type { BiodiversityIndices } from '../../utils/biodiversity';
 
 interface PlotWithBiodiversity extends Omit<VegetationPlot, 'biodiversity'> {
   biodiversity?: BiodiversityIndices;

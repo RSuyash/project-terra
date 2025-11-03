@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getAllSpecies, getPlotById, saveVegetationPlot, updateVegetationPlot } from '../db/database';
-import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant, Subplot, SubplotShape, VegetationPlot } from '../db/database';
+import { getAllSpecies, getPlotById, saveVegetationPlot, updateVegetationPlot } from '../../db/database';
+import type { PlotMeasurement, Species, Disturbance, Location, PlotDimensions, QuadrantData, Quadrant, Subplot, SubplotShape, VegetationPlot } from '../../db/database';
 import { GPSLocation } from './GPSLocation';
 import VisualPlotLayout from './VisualPlotLayout';
-import { subplotPresets, applySubplotPreset } from '../utils/subplotPresets';
+import { subplotPresets, applySubplotPreset } from '../../utils/subplotPresets';
 
 // Icons for buttons
 const SaveIcon = () => (

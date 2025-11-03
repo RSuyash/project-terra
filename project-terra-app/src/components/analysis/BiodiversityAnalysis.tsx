@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getAllPlots, getAllSpecies } from '../db/database';
-import type { VegetationPlot, Species } from '../db/database';
-import { calculateAllIndices } from '../utils/biodiversity';
-import type { BiodiversityIndices } from '../utils/biodiversity';
+import { getAllPlots, getAllSpecies } from '../../db/database';
+import type { VegetationPlot, Species } from '../../db/database';
+import { calculateAllIndices } from '../../utils/biodiversity';
+import type { BiodiversityIndices } from '../../utils/biodiversity';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface PlotWithBiodiversity extends VegetationPlot {

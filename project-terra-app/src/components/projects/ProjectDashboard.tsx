@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import SidePanel from './SidePanel';
-import Ribbon from './Ribbon';
+import { getAllProjects } from '../../db/database';
+import type { Project, VegetationPlot } from '../../db/database';
+import SidePanel from '../SidePanel';
+import Ribbon from '../Ribbon';
 import ProjectList from './ProjectDashboard/ProjectList';
 import ProjectForm from './ProjectDashboard/ProjectForm';
 import ProjectDetail from './ProjectDashboard/ProjectDetail';
 import PlotListInProject from './ProjectDashboard/PlotListInProject';
-import PlotList from './PlotDashboard/PlotManagement/PlotList';
-import PlotForm from './PlotDashboard/PlotForm/PlotForm';
-import PlotVisualization from './PlotDashboard/PlotVisualization/PlotVisualization';
+import PlotList from '../PlotDashboard/PlotManagement/PlotList';
+import PlotForm from '../PlotDashboard/PlotForm/PlotForm';
+import PlotVisualization from '../PlotDashboard/PlotVisualization/PlotVisualization';
 import CanopyAnalysisPlot from './ProjectDashboard/CanopyAnalysisPlot';
-import type { Project, VegetationPlot } from '../db/database';
 
 const ProjectDashboard = () => {
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);

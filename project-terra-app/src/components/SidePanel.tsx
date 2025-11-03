@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// components/SidePanel.tsx
+import React from 'react';
 
 interface SidePanelProps {
   isOpen: boolean;
@@ -8,50 +9,22 @@ interface SidePanelProps {
 
 const SidePanel: React.FC<SidePanelProps> = ({ isOpen, togglePanel, children }) => {
   return (
-    <>
-      {/* Hamburger menu button */}
-      <button
-        onClick={togglePanel}
-        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-white dark:bg-gray-800 shadow-lg md:hidden"
-        aria-label="Toggle sidebar"
-      >
-        <svg 
-          className="w-6 h-6 text-gray-700 dark:text-gray-300" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} 
-          />
-        </svg>
-      </button>
-
-      {/* Side Panel */}
-      <div 
-        className={`fixed top-0 left-0 h-full bg-white dark:bg-gray-800 shadow-xl z-40 w-64 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 md:static md:z-auto md:w-64 md:mr-4`}
-      >
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Project Tools</h2>
-        </div>
-        <div className="p-4">
-          {children}
-        </div>
-      </div>
-
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+    <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-gray-800 text-white transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
+      <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <h2 className="text-xl font-bold">Menu</h2>
+        <button 
+          className="lg:hidden text-gray-400 hover:text-white"
           onClick={togglePanel}
-        ></div>
-      )}
-    </>
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="p-4">
+        {children}
+      </div>
+    </div>
   );
 };
 

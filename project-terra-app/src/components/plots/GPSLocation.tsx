@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getCurrentLocation } from '../utils/geolocation';
+import { getCurrentLocation } from '../../utils/geolocation';
 
 // Extended interface to include source and altitude
 interface EnhancedLocation {

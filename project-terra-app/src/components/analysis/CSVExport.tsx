@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
-import { getAllPlots, getAllSpecies } from '../db/database';
-import type { VegetationPlot, Species } from '../db/database';
+import { getAllPlots, getAllSpecies } from '../../db/database';
+import type { VegetationPlot, Species } from '../../db/database';
 import Papa from 'papaparse';
 
 interface ExportOptions {

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllPlots, getAllProjects, createProject, updateProject } from '../db/database';
-import type { VegetationPlot, Project } from '../db/database';
-import { calculateAllIndices } from '../utils/biodiversity';
-import type { BiodiversityIndices } from '../utils/biodiversity';
+import { getAllPlots, getAllProjects, createProject, updateProject } from '../../db/database';
+import type { VegetationPlot, Project } from '../../db/database';
+import { calculateAllIndices } from '../../utils/biodiversity';
+import type { BiodiversityIndices } from '../../utils/biodiversity';
 
 
 

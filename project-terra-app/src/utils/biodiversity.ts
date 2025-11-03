@@ -1,4 +1,4 @@
-import type { PlotMeasurement } from '../db/database';
+import type { PlotMeasurement } from '../types';
 
 /**
  * Calculate species richness (S)
