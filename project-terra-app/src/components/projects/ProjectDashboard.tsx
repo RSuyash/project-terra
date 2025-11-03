@@ -117,7 +117,7 @@ const ProjectDashboard = () => {
             <li>
               <button 
                 className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
-                  view === 'list' ? 'bg-blue-100 dark:bg-blue-900/50 font-medium' : ''
+                  view === 'list' ? 'bg-primary-600 text-white font-medium shadow-md' : ''
                 }`}
                 onClick={() => setView('list')}
               >
@@ -127,7 +127,7 @@ const ProjectDashboard = () => {
             <li>
               <button 
                 className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
-                  view === 'form' && !editingProject ? 'bg-blue-100 dark:bg-blue-900/50 font-medium' : ''
+                  view === 'form' && !editingProject ? 'bg-primary-600 text-white font-medium shadow-md' : ''
                 }`}
                 onClick={handleCreateProject}
               >
@@ -137,7 +137,7 @@ const ProjectDashboard = () => {
             <li>
               <button 
                 className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
-                  view === 'plot-list' ? 'bg-blue-100 dark:bg-blue-900/50 font-medium' : ''
+                  view === 'plot-list' ? 'bg-primary-600 text-white font-medium shadow-md' : ''
                 }`}
                 onClick={() => setView('plot-list')}
               >
@@ -147,7 +147,7 @@ const ProjectDashboard = () => {
             <li>
               <button 
                 className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
-                  view === 'canopy-analysis' ? 'bg-blue-100 dark:bg-blue-900/50 font-medium' : ''
+                  view === 'canopy-analysis' ? 'bg-primary-600 text-white font-medium shadow-md' : ''
                 }`}
                 onClick={() => setView('canopy-analysis')}
               >
@@ -155,19 +155,34 @@ const ProjectDashboard = () => {
               </button>
             </li>
             <li>
-              <a href="#" className="block py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white">
+              <button 
+                className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
+                  false ? 'bg-primary-600 text-white font-medium shadow-md' : ''
+                }`}
+                onClick={() => alert('Species Tracking feature coming soon')}
+              >
                 Species Tracking
-              </a>
+              </button>
             </li>
             <li>
-              <a href="#" className="block py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white">
+              <button 
+                className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
+                  false ? 'bg-primary-600 text-white font-medium shadow-md' : ''
+                }`}
+                onClick={() => alert('Analysis Tools feature coming soon')}
+              >
                 Analysis Tools
-              </a>
+              </button>
             </li>
             <li>
-              <a href="#" className="block py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white">
+              <button 
+                className={`block w-full text-left py-2 px-4 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-white ${
+                  false ? 'bg-primary-600 text-white font-medium shadow-md' : ''
+                }`}
+                onClick={() => alert('Reports feature coming soon')}
+              >
                 Reports
-              </a>
+              </button>
             </li>
           </ul>
         </nav>
@@ -180,13 +195,13 @@ const ProjectDashboard = () => {
             {view === 'list' || view === 'detail' ? (
               <>
                 <button 
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors shadow-md font-medium"
                   onClick={handleCreateProject}
                 >
                   New Project
                 </button>
                 <button 
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                  className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors shadow-md font-medium"
                   onClick={() => setView('plot-list')}
                 >
                   View Plots
@@ -195,19 +210,19 @@ const ProjectDashboard = () => {
             ) : view === 'plot-list' || view === 'plot-visualization' ? (
               <>
                 <button 
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors shadow-md font-medium"
                   onClick={handleCreatePlot}
                 >
                   New Plot
                 </button>
                 <button 
-                  className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors shadow-md font-medium"
                   onClick={() => setView('list')}
                 >
                   Back to Projects
                 </button>
                 <button 
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors shadow-md font-medium"
                   onClick={() => setView('canopy-analysis')}
                 >
                   Canopy Analysis
@@ -216,7 +231,7 @@ const ProjectDashboard = () => {
             ) : view === 'plot-form' ? (
               <>
                 <button 
-                  className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors shadow-md font-medium"
                   onClick={() => setView('plot-list')}
                 >
                   Back to Plots
@@ -225,7 +240,7 @@ const ProjectDashboard = () => {
             ) : view === 'canopy-analysis' && analyzingPlot ? (
               <>
                 <button 
-                  className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors shadow-md font-medium"
                   onClick={handleCanopyAnalysisBack}
                 >
                   Back to Plots
@@ -233,16 +248,16 @@ const ProjectDashboard = () => {
               </>
             ) : (
               <button 
-                className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors shadow-md font-medium"
                 onClick={() => setView('list')}
               >
                 Back to Projects
               </button>
             )}
-            <button className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">
+            <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors shadow-md font-medium">
               Import Data
             </button>
-            <button className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors">
+            <button className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors shadow-md font-medium">
               Export Report
             </button>
             <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors">
